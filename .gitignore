@@ -1,21 +1,24 @@
-<<<<<<< HEAD
 # Dependências
 node_modules/
-package-lock.json
 
-# Variáveis de ambiente e credenciais
+# Variáveis de ambiente e credenciais (NUNCA versionar)
 .env
 .env.local
 .env.*.local
 
-# Logs e arquivos de sistema
+# Builds
+dist/
+build/
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Python (scripts de teste)
+__pycache__/
+*.pyc
+
+# Sistema
 .DS_Store
-dist/
-build/
-=======
-.env
-node_modules/
->>>>>>> e12e929080f3d3239e2f025b612774ddbc5eed4d
+Thumbs.db
