@@ -1,13 +1,21 @@
 {
-  "name": "backend",
+  "name": "recicle-floripa-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend do Recicle Floripa: API REST em Node.js/Express com PostgreSQL (Neon) e identificação de resíduos por IA (Gemini).",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "lint": "eslint \"src/**/*.js\" --no-error-on-unmatched-pattern"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "reciclagem",
+    "florianopolis",
+    "express",
+    "postgresql",
+    "gemini"
+  ],
+  "author": "Henrique Hoepers Ferraz, Lucas de Azevedo Corso, Luis Gustavo Angelo",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
