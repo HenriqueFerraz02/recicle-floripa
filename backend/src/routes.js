@@ -8,11 +8,17 @@ const { GoogleGenAI } = require('@google/genai');
 const SALT_ROUNDS = 10;
 const MAX_CAMERA_FRAME_BYTES = 8 * 1024 * 1024;
 const ASSINATURAS_IMAGEM = {
-  'image/jpeg': (buffer) => buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
-  'image/png': (buffer) => buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
-  'image/webp': (buffer) => buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP',
+  'image/jpeg': (buffer) =>
+    buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
+  'image/png': (buffer) =>
+    buffer
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  'image/webp': (buffer) =>
+    buffer.toString('ascii', 0, 4) === 'RIFF' &&
+    buffer.toString('ascii', 8, 12) === 'WEBP',
 };
-const MODELOS_IA = ['gemini-2.5-flash', 'gemini-3.6-flash'];
+const MODELOS_IA = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
 const TENTATIVAS_POR_MODELO = 3;
 const ATRASO_BASE_MS = 350;
 
@@ -21,15 +27,28 @@ const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const erroTransitorio = (error) => {
   const status = Number(error.status || error.response?.status);
   const codigo = String(error.code || error.status || '').toUpperCase();
-  return [429, 500, 502, 503, 504].includes(status)
-    || ['UNAVAILABLE', 'RESOURCE_EXHAUSTED', 'INTERNAL', 'DEADLINE_EXCEEDED', 'ECONNRESET', 'ETIMEDOUT'].includes(codigo);
+  return (
+    [429, 500, 502, 503, 504].includes(status) ||
+    [
+      'UNAVAILABLE',
+      'RESOURCE_EXHAUSTED',
+      'INTERNAL',
+      'DEADLINE_EXCEEDED',
+      'ECONNRESET',
+      'ETIMEDOUT',
+    ].includes(codigo)
+  );
 };
 
 const gerarConteudoComResiliencia = async (ai, contents, config) => {
   let ultimoErro;
 
   for (const model of MODELOS_IA) {
-    for (let tentativa = 1; tentativa <= TENTATIVAS_POR_MODELO; tentativa += 1) {
+    for (
+      let tentativa = 1;
+      tentativa <= TENTATIVAS_POR_MODELO;
+      tentativa += 1
+    ) {
       try {
         return await ai.models.generateContent({ model, contents, config });
       } catch (error) {
@@ -38,18 +57,26 @@ const gerarConteudoComResiliencia = async (ai, contents, config) => {
 
         const esgotouTentativas = tentativa === TENTATIVAS_POR_MODELO;
         if (esgotouTentativas) {
-          console.warn(`Modelo ${model} indisponível após ${tentativa} tentativas; tentando próximo modelo.`);
+          console.warn(
+            `Modelo ${model} indisponível após ${tentativa} tentativas; tentando próximo modelo.`
+          );
           break;
         }
 
-        const atraso = ATRASO_BASE_MS * (2 ** (tentativa - 1)) + Math.floor(Math.random() * 200);
-        console.warn(`Erro transitório no modelo ${model}; nova tentativa ${tentativa + 1}/${TENTATIVAS_POR_MODELO} em ${atraso}ms.`);
+        const atraso =
+          ATRASO_BASE_MS * 2 ** (tentativa - 1) +
+          Math.floor(Math.random() * 200);
+        console.warn(
+          `Erro transitório no modelo ${model}; nova tentativa ${tentativa + 1}/${TENTATIVAS_POR_MODELO} em ${atraso}ms.`
+        );
         await esperar(atraso);
       }
     }
   }
 
-  const indisponivel = new Error('O serviço de identificação está temporariamente ocupado. Tente novamente em alguns instantes.');
+  const indisponivel = new Error(
+    'O serviço de identificação está temporariamente ocupado. Tente novamente em alguns instantes.'
+  );
   indisponivel.status = 503;
   indisponivel.code = 'AI_TEMPORARILY_UNAVAILABLE';
   indisponivel.cause = ultimoErro;
@@ -58,24 +85,37 @@ const gerarConteudoComResiliencia = async (ai, contents, config) => {
 
 const receberFrameDaCamera = (req, res, next) => {
   const { frame, mimeType } = req.body || {};
-  const base64Valido = typeof frame === 'string'
-    && frame.length > 0
-    && frame.length % 4 === 0
-    && /^[A-Za-z0-9+/]+={0,2}$/.test(frame);
+  const base64Valido =
+    typeof frame === 'string' &&
+    frame.length > 0 &&
+    frame.length % 4 === 0 &&
+    /^[A-Za-z0-9+/]+={0,2}$/.test(frame);
 
   if (!base64Valido || !ASSINATURAS_IMAGEM[mimeType]) {
-    return res.status(400).json({ error: 'Envie um frame JPEG, PNG ou WebP válido capturado pela câmera.' });
+    return res
+      .status(400)
+      .json({
+        error: 'Envie um frame JPEG, PNG ou WebP válido capturado pela câmera.',
+      });
   }
 
   const buffer = Buffer.from(frame, 'base64');
   if (buffer.length > MAX_CAMERA_FRAME_BYTES) {
-    return res.status(413).json({ error: 'O frame da câmera excede o limite de 8 MB.' });
+    return res
+      .status(413)
+      .json({ error: 'O frame da câmera excede o limite de 8 MB.' });
   }
   if (buffer.length === 0 || buffer.toString('base64') !== frame) {
-    return res.status(400).json({ error: 'O frame da câmera está corrompido.' });
+    return res
+      .status(400)
+      .json({ error: 'O frame da câmera está corrompido.' });
   }
   if (!ASSINATURAS_IMAGEM[mimeType](buffer)) {
-    return res.status(400).json({ error: 'O formato declarado não corresponde ao conteúdo do frame.' });
+    return res
+      .status(400)
+      .json({
+        error: 'O formato declarado não corresponde ao conteúdo do frame.',
+      });
   }
 
   req.cameraFrame = { data: frame, mimeType };
@@ -160,21 +200,18 @@ routes.post('/ia/analisar', receberFrameDaCamera, async (req, res) => {
 // ==========================================================
 // ROTA DE IA: VALIDAÇÃO DE DESCARTE NA LIXEIRA (ANTI-FRAUDE)
 // ==========================================================
-routes.post(
-  '/ia/validar-descarte',
-  receberFrameDaCamera,
-  async (req, res) => {
-    try {
-      const { categoria, item } = req.body;
+routes.post('/ia/validar-descarte', receberFrameDaCamera, async (req, res) => {
+  try {
+    const { categoria, item } = req.body;
 
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        return res.status(500).json({ error: 'Chave de API não configurada.' });
-      }
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Chave de API não configurada.' });
+    }
 
-      const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
-      const prompt = `
+    const prompt = `
       Você é um auditor de sustentabilidade e descarte correto de resíduos.
       O usuário está tentando comprovar que descartou o item "${item || 'resíduo'}" da categoria "${categoria || 'reciclável'}".
       
@@ -191,45 +228,42 @@ routes.post(
       Não inclua markdown ou texto fora do JSON.
     `;
 
-      const contents = [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                data: req.cameraFrame.data,
-                mimeType: req.cameraFrame.mimeType,
-              },
+    const contents = [
+      {
+        role: 'user',
+        parts: [
+          { text: prompt },
+          {
+            inlineData: {
+              data: req.cameraFrame.data,
+              mimeType: req.cameraFrame.mimeType,
             },
-          ],
-        },
-      ];
+          },
+        ],
+      },
+    ];
 
-      const response = await gerarConteudoComResiliencia(ai, contents, {
-        responseMimeType: 'application/json',
-      });
+    const response = await gerarConteudoComResiliencia(ai, contents, {
+      responseMimeType: 'application/json',
+    });
 
-      let textoLimpo = response.text.trim();
-      if (textoLimpo.startsWith('```json')) {
-        textoLimpo = textoLimpo
-          .replace(/^```json\s*/, '')
-          .replace(/\s*```$/, '');
-      } else if (textoLimpo.startsWith('```')) {
-        textoLimpo = textoLimpo.replace(/^```\s*/, '').replace(/\s*```$/, '');
-      }
-
-      const resultadoJson = JSON.parse(textoLimpo);
-      return res.json(resultadoJson);
-    } catch (error) {
-      console.error('❌ Erro ao validar descarte na IA:', error);
-      return res.status(error.status === 503 ? 503 : 500).json({
-        error: error.message || 'Erro ao validar comprovação.',
-        ...(error.code ? { code: error.code } : {}),
-      });
+    let textoLimpo = response.text.trim();
+    if (textoLimpo.startsWith('```json')) {
+      textoLimpo = textoLimpo.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (textoLimpo.startsWith('```')) {
+      textoLimpo = textoLimpo.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
+
+    const resultadoJson = JSON.parse(textoLimpo);
+    return res.json(resultadoJson);
+  } catch (error) {
+    console.error('❌ Erro ao validar descarte na IA:', error);
+    return res.status(error.status === 503 ? 503 : 500).json({
+      error: error.message || 'Erro ao validar comprovação.',
+      ...(error.code ? { code: error.code } : {}),
+    });
   }
-);
+});
 
 // 1. Cadastro de Usuário
 routes.post('/usuarios', async (req, res) => {
@@ -238,12 +272,10 @@ routes.post('/usuarios', async (req, res) => {
   const senhaValida =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,8}$/.test(senha);
   if (!senhaValida) {
-    return res
-      .status(400)
-      .json({
-        error:
-          'A senha deve ter entre 6 e 8 caracteres, incluir maiúsculo, minúsculo e um caractere especial.',
-      });
+    return res.status(400).json({
+      error:
+        'A senha deve ter entre 6 e 8 caracteres, incluir maiúsculo, minúsculo e um caractere especial.',
+    });
   }
 
   try {
@@ -255,11 +287,9 @@ routes.post('/usuarios', async (req, res) => {
     return res.status(201).json(novoUsuario.rows[0]);
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({
-        error: 'Erro ao cadastrar. E-mail ou CPF já podem estar em uso.',
-      });
+    return res.status(500).json({
+      error: 'Erro ao cadastrar. E-mail ou CPF já podem estar em uso.',
+    });
   }
 });
 
