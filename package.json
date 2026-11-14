@@ -1,23 +1,32 @@
 {
   "name": "recicle-floripa",
   "version": "1.0.0",
-  "description": "[cite_start]O **Recicle Floripa** é um aplicativo mobile desenvolvido para otimizar o descarte de resíduos sólidos em Florianópolis/SC[cite: 10]. [cite_start]O sistema permite que moradores e turistas identifiquem corretamente os materiais e localizem pontos de coleta próximos, auxiliando na gestão ambiental da cidade em parceria com órgãos como a COMCAP[cite: 13, 21].",
-  "main": "index.js",
+  "description": "Recicle Floripa: app de descarte correto de resíduos em Florianópolis, com identificação por IA, ecopontos e gamificação.",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GustavoAng3lo/recicle-floripa.git"
+    "url": "git+https://github.com/HenriqueFerraz02/recicle-floripa.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "reciclagem",
+    "florianopolis",
+    "residuos",
+    "gamificacao",
+    "ia"
+  ],
+  "author": "Henrique Hoepers Ferraz, Lucas de Azevedo Corso, Luis Gustavo Angelo",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/GustavoAng3lo/recicle-floripa/issues"
+    "url": "https://github.com/HenriqueFerraz02/recicle-floripa/issues"
   },
-  "homepage": "https://github.com/GustavoAng3lo/recicle-floripa#readme",
+  "homepage": "https://github.com/HenriqueFerraz02/recicle-floripa#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.5.0",

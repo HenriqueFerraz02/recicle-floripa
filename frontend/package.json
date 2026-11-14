@@ -1,7 +1,8 @@
 {
-  "name": "frontend",
+  "name": "recicle-floripa-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Frontend do Recicle Floripa: interface React + Vite do app de descarte correto de resíduos.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -29,9 +30,12 @@
     "globals": "^17.6.0",
     "vite": "^8.0.16"
   },
-  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
-  "main": "eslint.config.js",
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "reciclagem",
+    "florianopolis",
+    "react",
+    "vite"
+  ],
+  "author": "Henrique Hoepers Ferraz, Lucas de Azevedo Corso, Luis Gustavo Angelo",
   "license": "ISC"
 }
