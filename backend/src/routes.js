@@ -92,11 +92,9 @@ const receberFrameDaCamera = (req, res, next) => {
     /^[A-Za-z0-9+/]+={0,2}$/.test(frame);
 
   if (!base64Valido || !ASSINATURAS_IMAGEM[mimeType]) {
-    return res
-      .status(400)
-      .json({
-        error: 'Envie um frame JPEG, PNG ou WebP válido capturado pela câmera.',
-      });
+    return res.status(400).json({
+      error: 'Envie um frame JPEG, PNG ou WebP válido capturado pela câmera.',
+    });
   }
 
   const buffer = Buffer.from(frame, 'base64');
@@ -111,11 +109,9 @@ const receberFrameDaCamera = (req, res, next) => {
       .json({ error: 'O frame da câmera está corrompido.' });
   }
   if (!ASSINATURAS_IMAGEM[mimeType](buffer)) {
-    return res
-      .status(400)
-      .json({
-        error: 'O formato declarado não corresponde ao conteúdo do frame.',
-      });
+    return res.status(400).json({
+      error: 'O formato declarado não corresponde ao conteúdo do frame.',
+    });
   }
 
   req.cameraFrame = { data: frame, mimeType };
@@ -125,6 +121,46 @@ const receberFrameDaCamera = (req, res, next) => {
 // Rota de teste
 routes.get('/', (req, res) => {
   return res.json({ message: 'API Recicle Floripa Online!' });
+});
+
+// ==========================================
+// BUSCA NO CATÁLOGO OFICIAL DE RESÍDUOS (IBAMA)
+// Ex.: GET /catalogo?busca=pilha
+// ==========================================
+routes.get('/catalogo', async (req, res) => {
+  const termo = String(req.query.busca || '').trim();
+
+  if (termo.length < 2) {
+    return res
+      .status(400)
+      .json({ error: 'Digite pelo menos 2 letras para buscar.' });
+  }
+
+  // Escapa % e _ para o texto do usuário ser buscado literalmente
+  const padrao = `%${termo.replace(/[%_\\]/g, '\\$&')}%`;
+
+  try {
+    const resultado = await pool.query(
+      `SELECT c.codigo, c.descricao, c.perigoso, c.categoria_app, c.nomes_populares,
+              (c.nomes_populares IS NOT NULL) AS item_comum,
+              COALESCE(
+                json_agg(json_build_object('nome', e.nome, 'endereco', e.endereco, 'bairro', e.bairro, 'horario', e.horario))
+                  FILTER (WHERE e.id IS NOT NULL),
+                '[]'
+              ) AS ecopontos
+         FROM catalogo_residuos c
+         LEFT JOIN ecopontos e ON e.ativo AND c.material_ecoponto = ANY(e.materiais)
+        WHERE c.nivel = 3 AND (c.nomes_populares ILIKE $1 OR c.descricao ILIKE $1)
+        GROUP BY c.codigo
+        ORDER BY (c.nomes_populares ILIKE $1) DESC NULLS LAST, c.codigo
+        LIMIT 20`,
+      [padrao]
+    );
+    return res.json(resultado.rows);
+  } catch (err) {
+    console.error('❌ Erro na busca do catálogo:', err);
+    return res.status(500).json({ error: 'Erro ao buscar no catálogo.' });
+  }
 });
 
 // ==========================================
