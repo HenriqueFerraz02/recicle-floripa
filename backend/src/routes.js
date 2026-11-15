@@ -150,9 +150,9 @@ routes.get('/catalogo', async (req, res) => {
               ) AS ecopontos
          FROM catalogo_residuos c
          LEFT JOIN ecopontos e ON e.ativo AND c.material_ecoponto = ANY(e.materiais)
-        WHERE c.nivel = 3 AND (c.nomes_populares ILIKE $1 OR c.descricao ILIKE $1)
+        WHERE c.nivel = 3 AND (unaccent(c.nomes_populares) ILIKE unaccent($1) OR unaccent(c.descricao) ILIKE unaccent($1))
         GROUP BY c.codigo
-        ORDER BY (c.nomes_populares ILIKE $1) DESC NULLS LAST, c.codigo
+        ORDER BY (unaccent(c.nomes_populares) ILIKE unaccent($1)) DESC NULLS LAST, c.codigo
         LIMIT 20`,
       [padrao]
     );

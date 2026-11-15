@@ -6,6 +6,9 @@
 -- =====================================================================
 
 -- Parte 1: estrutura --------------------------------------------------
+-- Extensão para buscar ignorando acentos (ex.: "oleo" encontra "Óleo")
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 -- Hierarquia do código IBAMA:  "15" capítulo > "15 01" subcapítulo > "15 01 02" resíduo
 CREATE TABLE IF NOT EXISTS catalogo_residuos (
   codigo            VARCHAR(8)  PRIMARY KEY,
