@@ -4,6 +4,8 @@
 
 Projeto acadêmico do curso de **Análise e Desenvolvimento de Sistemas — UNICESUSC** (Projeto Multidisciplinar Integrador IV).
 
+🌐 **Acesse:** https://recicle-floripa.vercel.app
+
 ---
 
 ## 📌 Sumário
@@ -107,8 +109,18 @@ recicle-floripa/
 | `usuarios` | Dados da conta, hash da senha e pontuação |
 | `residuos` | Descartes registrados — **FK** para `usuarios` com `ON DELETE CASCADE` |
 | `ecopontos` | Pontos de coleta com lista de materiais aceitos (`TEXT[]`) |
+| `catalogo_residuos` | **Lista Brasileira de Resíduos Sólidos (IBAMA, IN nº 13/2012)**: 1.010 códigos oficiais (20 capítulos, 112 subcapítulos, 878 resíduos, 449 perigosos), com hierarquia por `codigo_pai` |
 
-O script completo está em [`backend/database/schema.sql`](backend/database/schema.sql).
+Os scripts estão em [`backend/database/`](backend/database/): primeiro o `schema.sql`, depois o `catalogo_ibama.sql`.
+
+**Ligando a lista oficial ao app:** além dos dados do IBAMA, o grupo classificou os itens do dia a dia com três campos próprios: `categoria_app` (a mesma categoria que a IA devolve), `material_ecoponto` (o mesmo texto de `ecopontos.materiais`) e `nomes_populares` (termos da busca manual). Exemplo — onde descartar pilhas:
+
+```sql
+SELECT c.codigo, c.descricao, e.nome AS ecoponto
+FROM catalogo_residuos c
+JOIN ecopontos e ON c.material_ecoponto = ANY(e.materiais)
+WHERE c.nomes_populares ILIKE '%pilha%';
+```
 
 ---
 
@@ -127,7 +139,7 @@ npm run install:all
 ```
 
 ### 2. Criar o banco
-No painel do Neon, abra o **SQL Editor** e rode o conteúdo de `backend/database/schema.sql`.
+No painel do Neon, abra o **SQL Editor** e rode, nesta ordem, o conteúdo de `backend/database/schema.sql` e de `backend/database/catalogo_ibama.sql`.
 
 ### 3. Configurar as variáveis de ambiente
 - Copie `backend/.env.example` para **`backend/.env`** e preencha `DATABASE_URL` e `GEMINI_API_KEY`.
@@ -189,9 +201,10 @@ O navegador do celular só libera a câmera em **HTTPS**. Para testar localmente
 ## 🧭 Próximos passos
 
 - [ ] Autenticação com **JWT** nas rotas da API
-- [ ] **Catálogo oficial de resíduos** (Lista Brasileira de Resíduos Sólidos — IBAMA) com busca manual
+- [x] **Catálogo oficial de resíduos** (Lista Brasileira de Resíduos Sólidos — IBAMA) no banco
+- [ ] Tela de busca manual no catálogo
 - [ ] Integrar a resposta da IA com o catálogo e os ecopontos do banco
-- [ ] Hospedagem em produção (backend no Render, frontend na Vercel)
+- [x] Hospedagem em produção (backend no Render, frontend na Vercel)
 - [ ] Publicação na **Google Play** e na **App Store** (empacotamento com Capacitor)
 
 ---
