@@ -11,39 +11,43 @@ import Servicos from './pages/Servicos';
 import Historico from './pages/Historico';
 import Perfil from './pages/Perfil';
 import Coleta from './pages/Coleta';
+import BuscaResiduos from './pages/BuscaResiduos';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Rota inicial redireciona para login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path='/' element={<Navigate to='/login' replace />} />
 
         {/* Autenticação */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<Cadastro />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/cadastro' element={<Cadastro />} />
 
         {/* Painel Principal */}
-        <Route path="/home" element={<Home />} />
+        <Route path='/home' element={<Home />} />
 
         {/* Fluxo de IA e Descarte */}
-        <Route path="/scanner" element={<Scanner />} />
-        <Route path="/comprovar-descarte" element={<ComprovarDescarte />} />
+        <Route path='/scanner' element={<Scanner />} />
+        <Route path='/comprovar-descarte' element={<ComprovarDescarte />} />
 
         {/* Ecopontos e Mapa */}
-        <Route path="/pontos" element={<PontosEntrega />} />
+        <Route path='/pontos' element={<PontosEntrega />} />
 
         {/* Configurações da Conta */}
-        <Route path="/configuracoes" element={<Configuracoes />} />
+        <Route path='/configuracoes' element={<Configuracoes />} />
 
         {/* Guia de descarte e coleta especial */}
-        <Route path="/servicos" element={<Servicos />} />
-        <Route path="/historico" element={<Historico />} />
-        <Route path="/perfil" element={<Perfil />} />
-        <Route path="/coleta" element={<Coleta />} />
+        <Route path='/servicos' element={<Servicos />} />
+        <Route path='/historico' element={<Historico />} />
+        <Route path='/perfil' element={<Perfil />} />
+        <Route path='/coleta' element={<Coleta />} />
+
+        {/* Busca no catálogo oficial de resíduos (IBAMA) */}
+        <Route path='/busca' element={<BuscaResiduos />} />
 
         {/* Rota coringa para rotas não encontradas */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path='*' element={<Navigate to='/home' replace />} />
       </Routes>
     </BrowserRouter>
   );
