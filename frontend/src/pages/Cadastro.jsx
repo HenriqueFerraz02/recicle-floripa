@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Calendar, CreditCard, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
+import DocumentoLegal from './DocumentoLegal';
 import { cpfValido, dataNascimentoValida, normalizarEmail, regrasSenha, senhaValida } from '../utils/senha';
 
 const maskCPF = (value) => value
@@ -28,6 +29,10 @@ const Cadastro = () => {
   const [dataNasc, setDataNasc] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [erro, setErro] = useState('');
+  const [aceite, setAceite] = useState(false);
+  // 'termos' ou 'privacidade' abre o documento por cima do formulário,
+  // sem perder o que já foi digitado.
+  const [documentoAberto, setDocumentoAberto] = useState(null);
 
   const regras = regrasSenha(senha);
 
@@ -72,6 +77,16 @@ const Cadastro = () => {
       {valid ? '✓' : '•'} {text}
     </span>
   );
+
+  if (documentoAberto) {
+    return <DocumentoLegal tipo={documentoAberto} onVoltar={() => { setDocumentoAberto(null); window.scrollTo(0, 0); }} />;
+  }
+
+  const abrirDocumento = (tipo) => (event) => {
+    event.preventDefault();
+    window.scrollTo(0, 0);
+    setDocumentoAberto(tipo);
+  };
 
   return (
     <main className='auth-page'>
@@ -144,8 +159,13 @@ const Cadastro = () => {
             </div>
 
             <label className='terms-field'>
-              <input type='checkbox' required />
-              <span>Concordo com os <b>termos</b> e a <b>privacidade</b>.</span>
+              <input type='checkbox' checked={aceite} onChange={(event) => setAceite(event.target.checked)} required />
+              <span>
+                Li e concordo com os{' '}
+                <button type='button' className='auth-text-button' onClick={abrirDocumento('termos')}>Termos de Uso</button>
+                {' '}e a{' '}
+                <button type='button' className='auth-text-button' onClick={abrirDocumento('privacidade')}>Política de Privacidade</button>.
+              </span>
             </label>
 
             <button type='submit' className='auth-button auth-button-primary'>Cadastrar e começar</button>

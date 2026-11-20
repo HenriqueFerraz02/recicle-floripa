@@ -2957,3 +2957,66 @@ input {
   color: #28a95b;
   background: #e8f8ee;
 }
+
+/* --- TERMOS DE USO E POLÍTICA DE PRIVACIDADE --- */
+.legal-shell {
+  width: min(100%, 520px);
+}
+
+.legal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 14px 0 4px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #239b51;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.legal-content {
+  margin: 10px 0 18px;
+}
+
+.legal-content h1 {
+  margin: 0 0 10px;
+  color: #1e5d35;
+  font-size: clamp(1.3rem, 5.6vw, 1.62rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.legal-section h2 {
+  margin: 16px 0 6px;
+  color: #1e5d35;
+  font-size: 0.82rem;
+}
+
+.legal-section p,
+.legal-section li {
+  margin: 0 0 7px;
+  color: #4f6b56;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.legal-section ul {
+  list-style: disc;
+  margin: 0 0 7px;
+  padding-left: 18px;
+}
+
+.legal-updated {
+  margin: 18px 0 0;
+  color: #89a18e;
+  font-size: 0.65rem;
+}
+
+.terms-field .auth-text-button {
+  font-size: inherit;
+  text-decoration: underline;
+}

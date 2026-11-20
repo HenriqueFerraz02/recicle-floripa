@@ -12,6 +12,7 @@ import Historico from './pages/Historico';
 import Perfil from './pages/Perfil';
 import Coleta from './pages/Coleta';
 import BuscaResiduos from './pages/BuscaResiduos';
+import DocumentoLegal from './pages/DocumentoLegal';
 
 export default function App() {
   return (
@@ -23,6 +24,10 @@ export default function App() {
         {/* Autenticação */}
         <Route path='/login' element={<Login />} />
         <Route path='/cadastro' element={<Cadastro />} />
+
+        {/* Documentos legais (LGPD) */}
+        <Route path='/termos' element={<DocumentoLegal tipo='termos' />} />
+        <Route path='/privacidade' element={<DocumentoLegal tipo='privacidade' />} />
 
         {/* Painel Principal */}
         <Route path='/home' element={<Home />} />
