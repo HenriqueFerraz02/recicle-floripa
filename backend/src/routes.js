@@ -4,7 +4,13 @@ const routes = express.Router();
 const pool = require('./database');
 const bcrypt = require('bcrypt');
 const { GoogleGenAI } = require('@google/genai');
-const { normalizarEmail, validarSenha } = require('./validacoes');
+const {
+  normalizarEmail,
+  validarSenha,
+  cpfValido,
+  formatarCpf,
+  converterDataNascimento,
+} = require('./validacoes');
 
 const SALT_ROUNDS = 10;
 const MAX_CAMERA_FRAME_BYTES = 8 * 1024 * 1024;
@@ -304,11 +310,23 @@ routes.post('/ia/validar-descarte', receberFrameDaCamera, async (req, res) => {
 
 // 1. Cadastro de Usuário
 routes.post('/usuarios', async (req, res) => {
-  const { nome, senha, cpf, data_nascimento } = req.body;
+  const { nome, senha } = req.body;
   const email = normalizarEmail(req.body.email);
 
   if (!email) {
     return res.status(400).json({ error: 'Informe um e-mail.' });
+  }
+
+  if (!cpfValido(req.body.cpf)) {
+    return res.status(400).json({ error: 'CPF inválido. Confira os números.' });
+  }
+  const cpf = formatarCpf(req.body.cpf);
+
+  const data_nascimento = converterDataNascimento(req.body.data_nascimento);
+  if (!data_nascimento) {
+    return res
+      .status(400)
+      .json({ error: 'Data de nascimento inválida. Use DD/MM/AAAA.' });
   }
 
   const erroSenha = validarSenha(senha);

@@ -38,4 +38,53 @@ const validarSenha = (senha) => {
   return null;
 };
 
-module.exports = { normalizarEmail, validarSenha, SENHA_MIN, SENHA_MAX };
+// CPF: confere os dois dígitos verificadores (cálculo módulo 11).
+// Isso garante que o número é matematicamente válido, não que ele exista
+// na Receita Federal nem que pertença a quem está cadastrando.
+const somenteDigitos = (valor) => String(valor ?? '').replace(/\D/g, '');
+
+const cpfValido = (cpf) => {
+  const d = somenteDigitos(cpf);
+  if (d.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(d)) return false; // 000.000.000-00, 111..., etc.
+
+  const digito = (qtd) => {
+    let soma = 0;
+    for (let i = 0; i < qtd; i += 1) soma += Number(d[i]) * (qtd + 1 - i);
+    const resto = (soma * 10) % 11;
+    return resto === 10 ? 0 : resto;
+  };
+
+  return digito(9) === Number(d[9]) && digito(10) === Number(d[10]);
+};
+
+// Sempre salva no mesmo formato (000.000.000-00), para o UNIQUE funcionar.
+const formatarCpf = (cpf) =>
+  somenteDigitos(cpf).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+
+// Recebe DD/MM/AAAA e devolve AAAA-MM-DD, ou null se a data não existir,
+// estiver no futuro ou for de mais de 120 anos atrás.
+const converterDataNascimento = (texto) => {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(texto ?? '').trim());
+  if (!m) return null;
+  const [, dia, mes, ano] = m.map(Number);
+  const data = new Date(Date.UTC(ano, mes - 1, dia));
+  const existe =
+    data.getUTCFullYear() === ano &&
+    data.getUTCMonth() === mes - 1 &&
+    data.getUTCDate() === dia;
+  if (!existe) return null;
+  const hoje = new Date();
+  if (data > hoje || ano < hoje.getUTCFullYear() - 120) return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+};
+
+module.exports = {
+  normalizarEmail,
+  validarSenha,
+  cpfValido,
+  formatarCpf,
+  converterDataNascimento,
+  SENHA_MIN,
+  SENHA_MAX,
+};

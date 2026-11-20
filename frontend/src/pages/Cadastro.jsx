@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Calendar, CreditCard, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
-import { normalizarEmail, regrasSenha, senhaValida } from '../utils/senha';
+import { cpfValido, dataNascimentoValida, normalizarEmail, regrasSenha, senhaValida } from '../utils/senha';
 
 const maskCPF = (value) => value
   .replace(/\D/g, '')
@@ -37,6 +37,16 @@ const Cadastro = () => {
 
     if (!senhaValida(senha)) {
       setErro('Por favor, cumpra todos os requisitos da senha.');
+      return;
+    }
+
+    if (!cpfValido(cpf)) {
+      setErro('CPF inválido. Confira os números.');
+      return;
+    }
+
+    if (!dataNascimentoValida(dataNasc)) {
+      setErro('Data de nascimento inválida. Use DD/MM/AAAA.');
       return;
     }
 
@@ -119,15 +129,17 @@ const Cadastro = () => {
                 <span>CPF</span>
                 <div className='auth-input-with-icon'>
                   <CreditCard size={15} aria-hidden='true' />
-                  <input type='text' placeholder='000.000.000-00' value={cpf} onChange={(event) => setCpf(maskCPF(event.target.value))} required />
+                  <input type='text' inputMode='numeric' placeholder='000.000.000-00' value={cpf} onChange={(event) => setCpf(maskCPF(event.target.value))} required />
                 </div>
+                {cpf.length === 14 && !cpfValido(cpf) && <span className='password-rule is-invalid'>CPF inválido</span>}
               </label>
               <label className='auth-field'>
                 <span>Nascimento</span>
                 <div className='auth-input-with-icon'>
                   <Calendar size={15} aria-hidden='true' />
-                  <input type='text' placeholder='DD/MM/AAAA' value={dataNasc} onChange={(event) => setDataNasc(maskDate(event.target.value))} required />
+                  <input type='text' inputMode='numeric' placeholder='DD/MM/AAAA' value={dataNasc} onChange={(event) => setDataNasc(maskDate(event.target.value))} required />
                 </div>
+                {dataNasc.length === 10 && !dataNascimentoValida(dataNasc) && <span className='password-rule is-invalid'>Data inválida</span>}
               </label>
             </div>
 
