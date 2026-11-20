@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
+import { normalizarEmail } from '../utils/senha';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, { email, senha });
+      const response = await axios.post(`${API_BASE_URL}/login`, { email: normalizarEmail(email), senha });
       
       if (response.data) {
         // Salva nos formatos das duas ramificações para dar suporte a todas as telas do app
@@ -68,6 +69,8 @@ const Login = () => {
             <span>E-mail</span>
             <input
               type="email"
+              autoComplete="email"
+              autoCapitalize="none"
               placeholder="seuemail@exemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -79,6 +82,7 @@ const Login = () => {
             <span>Senha</span>
             <input
               type="password"
+              autoComplete="current-password"
               placeholder="********"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}

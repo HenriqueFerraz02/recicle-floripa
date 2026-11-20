@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Calendar, CreditCard, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
+import { normalizarEmail, regrasSenha, senhaValida } from '../utils/senha';
 
 const maskCPF = (value) => value
   .replace(/\D/g, '')
@@ -28,17 +29,13 @@ const Cadastro = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [erro, setErro] = useState('');
 
-  const regras = {
-    tamanho: senha.length >= 6 && senha.length <= 8,
-    maiusculoMinusculo: /[a-z]/.test(senha) && /[A-Z]/.test(senha),
-    letraEspecial: /[a-zA-Z]/.test(senha) && /[!@#$%^&*(),.?":{}|<>]/.test(senha),
-  };
+  const regras = regrasSenha(senha);
 
   const handleCadastro = async (event) => {
     event.preventDefault();
     setErro('');
 
-    if (!regras.tamanho || !regras.maiusculoMinusculo || !regras.letraEspecial) {
+    if (!senhaValida(senha)) {
       setErro('Por favor, cumpra todos os requisitos da senha.');
       return;
     }
@@ -46,7 +43,7 @@ const Cadastro = () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/usuarios`, {
         nome,
-        email,
+        email: normalizarEmail(email),
         senha,
         cpf,
         data_nascimento: dataNasc,
@@ -95,7 +92,7 @@ const Cadastro = () => {
               <span>E-mail</span>
               <div className='auth-input-with-icon'>
                 <Mail size={15} aria-hidden='true' />
-                <input type='email' placeholder='seuemail@exemplo.com' value={email} onChange={(event) => setEmail(event.target.value)} required />
+                <input type='email' autoComplete='email' autoCapitalize='none' placeholder='seuemail@exemplo.com' value={email} onChange={(event) => setEmail(event.target.value)} required />
               </div>
             </label>
 
@@ -103,15 +100,17 @@ const Cadastro = () => {
               <span>Senha</span>
               <div className='auth-input-with-icon'>
                 <Lock size={15} aria-hidden='true' />
-                <input type={showPassword ? 'text' : 'password'} placeholder='********' value={senha} onChange={(event) => setSenha(event.target.value)} required />
+                <input type={showPassword ? 'text' : 'password'} autoComplete='new-password' placeholder='********' value={senha} onChange={(event) => setSenha(event.target.value)} required />
                 <button type='button' className='password-toggle' onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
               <div className='password-rules'>
-                {passwordRule(regras.tamanho, 'Entre 6 e 8 caracteres')}
+                {passwordRule(regras.tamanho, 'Pelo menos 8 caracteres')}
                 {passwordRule(regras.maiusculoMinusculo, 'Maiúscula e minúscula')}
-                {passwordRule(regras.letraEspecial, 'Uma letra e um caractere especial')}
+                {passwordRule(regras.numero, 'Um número')}
+                {passwordRule(regras.especial, 'Um caractere especial')}
+                {passwordRule(regras.naoComum, 'Não pode ser uma senha comum')}
               </div>
             </label>
 

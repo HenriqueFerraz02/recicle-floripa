@@ -19,6 +19,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
   criado_em       TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- E-mail é salvo em minúsculas pelo backend; o índice garante que
+-- Teste01@x.com e teste01@x.com não virem duas contas.
+CREATE UNIQUE INDEX IF NOT EXISTS usuarios_email_lower_unico
+  ON usuarios (LOWER(email));
+
 -- ---------------------------------------------------------------------
 -- Descartes registrados (pelo scanner com IA ou pela coleta manual)
 -- ON DELETE CASCADE: ao excluir um usuário, seus descartes saem junto (LGPD).

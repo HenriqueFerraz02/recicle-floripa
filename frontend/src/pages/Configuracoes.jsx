@@ -3,6 +3,7 @@ import { AlertCircle, Award, BarChart3, Calendar, CheckCircle, ChevronRight, Loc
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api';
+import { senhaValida } from '../utils/senha';
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -74,13 +75,12 @@ export default function Configuracoes() {
 
   const handleAlterarSenha = async (event) => {
     event.preventDefault();
-    const regexSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,8}$/;
     if (!senhaAtual) {
       setFeedbackSenha({ msg: 'Informe sua senha atual para autorizar a alteração.', tipo: 'erro' });
       return;
     }
-    if (!regexSenha.test(novaSenha)) {
-      setFeedbackSenha({ msg: 'A nova senha deve ter entre 6 e 8 caracteres, com maiúsculo, minúsculo e caractere especial.', tipo: 'erro' });
+    if (!senhaValida(novaSenha)) {
+      setFeedbackSenha({ msg: 'A nova senha deve ter pelo menos 8 caracteres, com maiúscula, minúscula, número e caractere especial, e não pode ser uma senha comum.', tipo: 'erro' });
       return;
     }
     setSalvandoSenha(true);
@@ -162,7 +162,7 @@ export default function Configuracoes() {
 
         {modalAtivo === 'tabelaMensal' && <><div className='report-summary'><div><span>Total coletado</span><strong>{totalColetasAno}</strong></div><div><span>Pontos do ano</span><strong>+{totalPontosAno}</strong></div><div><span>CO₂ evitado</span><strong>~{totalCo2Ano} kg</strong></div></div><div className='report-table-wrap'><table><thead><tr><th>Mês</th><th>Descartes</th><th>Pontos</th><th>CO₂</th></tr></thead><tbody>{dadosMensais.map((dado) => <tr key={dado.mes}><td>{dado.mes}</td><td>{dado.totalItens}</td><td>{dado.pontosGanhos ? `+${dado.pontosGanhos}` : '-'}</td><td>{dado.totalItens ? `${dado.co2EstimadoKg} kg` : '-'}</td></tr>)}</tbody></table></div><button className='auth-button auth-button-primary' onClick={() => setModalAtivo(null)}>Fechar relatório</button></>}
 
-        {modalAtivo === 'seguranca' && <form className='security-form' onSubmit={handleAlterarSenha}>{feedbackSenha.msg && <div className={`settings-feedback ${feedbackSenha.tipo === 'sucesso' ? 'is-success' : 'is-error'}`}>{feedbackSenha.msg}</div>}<label><span>Senha atual</span><input type='password' value={senhaAtual} onChange={(event) => setSenhaAtual(event.target.value)} placeholder='Digite sua senha atual' required /></label><label><span>Nova senha</span><input type='password' value={novaSenha} onChange={(event) => setNovaSenha(event.target.value)} placeholder='Ex: Floripa@2026' required /><small>6 a 8 caracteres, com maiúscula, minúscula e caractere especial.</small></label><div className='security-actions'><button type='button' onClick={() => setModalAtivo(null)}>Cancelar</button><button className='auth-button-primary' type='submit' disabled={salvandoSenha}>{salvandoSenha ? 'Validando...' : 'Confirmar troca'}</button></div></form>}
+        {modalAtivo === 'seguranca' && <form className='security-form' onSubmit={handleAlterarSenha}>{feedbackSenha.msg && <div className={`settings-feedback ${feedbackSenha.tipo === 'sucesso' ? 'is-success' : 'is-error'}`}>{feedbackSenha.msg}</div>}<label><span>Senha atual</span><input type='password' autoComplete='current-password' value={senhaAtual} onChange={(event) => setSenhaAtual(event.target.value)} placeholder='Digite sua senha atual' required /></label><label><span>Nova senha</span><input type='password' autoComplete='new-password' value={novaSenha} onChange={(event) => setNovaSenha(event.target.value)} placeholder='Ex: Verde$Ilha77' required /><small>Pelo menos 8 caracteres, com maiúscula, minúscula, número e caractere especial.</small></label><div className='security-actions'><button type='button' onClick={() => setModalAtivo(null)}>Cancelar</button><button className='auth-button-primary' type='submit' disabled={salvandoSenha}>{salvandoSenha ? 'Validando...' : 'Confirmar troca'}</button></div></form>}
       </section></div>}
     </main>
   );

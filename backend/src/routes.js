@@ -4,6 +4,7 @@ const routes = express.Router();
 const pool = require('./database');
 const bcrypt = require('bcrypt');
 const { GoogleGenAI } = require('@google/genai');
+const { normalizarEmail, validarSenha } = require('./validacoes');
 
 const SALT_ROUNDS = 10;
 const MAX_CAMERA_FRAME_BYTES = 8 * 1024 * 1024;
@@ -303,18 +304,29 @@ routes.post('/ia/validar-descarte', receberFrameDaCamera, async (req, res) => {
 
 // 1. Cadastro de Usuário
 routes.post('/usuarios', async (req, res) => {
-  const { nome, email, senha, cpf, data_nascimento } = req.body;
+  const { nome, senha, cpf, data_nascimento } = req.body;
+  const email = normalizarEmail(req.body.email);
 
-  const senhaValida =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,8}$/.test(senha);
-  if (!senhaValida) {
-    return res.status(400).json({
-      error:
-        'A senha deve ter entre 6 e 8 caracteres, incluir maiúsculo, minúsculo e um caractere especial.',
-    });
+  if (!email) {
+    return res.status(400).json({ error: 'Informe um e-mail.' });
+  }
+
+  const erroSenha = validarSenha(senha);
+  if (erroSenha) {
+    return res.status(400).json({ error: erroSenha });
   }
 
   try {
+    const jaExiste = await pool.query(
+      'SELECT 1 FROM usuarios WHERE LOWER(email) = $1',
+      [email]
+    );
+    if (jaExiste.rows.length > 0) {
+      return res
+        .status(409)
+        .json({ error: 'Já existe uma conta com esse e-mail.' });
+    }
+
     const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
     const novoUsuario = await pool.query(
       'INSERT INTO usuarios (nome, email, senha, cpf, data_nascimento, pontos) VALUES ($1, $2, $3, $4, $5, 0) RETURNING id, nome, email',
@@ -323,18 +335,23 @@ routes.post('/usuarios', async (req, res) => {
     return res.status(201).json(novoUsuario.rows[0]);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({
-      error: 'Erro ao cadastrar. E-mail ou CPF já podem estar em uso.',
-    });
+    if (err.code === '23505') {
+      return res
+        .status(409)
+        .json({ error: 'E-mail ou CPF já estão em uso.' });
+    }
+    return res.status(500).json({ error: 'Erro ao cadastrar.' });
   }
 });
 
 // 2. Login Autenticação
 routes.post('/login', async (req, res) => {
-  const { email, senha } = req.body;
+  const { senha } = req.body;
+  const email = normalizarEmail(req.body.email);
   try {
+    // LOWER(email) também cobre contas antigas salvas com maiúsculas.
     const resultado = await pool.query(
-      'SELECT id, nome, email, senha FROM usuarios WHERE email = $1',
+      'SELECT id, nome, email, senha FROM usuarios WHERE LOWER(email) = $1',
       [email]
     );
 
@@ -442,15 +459,9 @@ routes.put('/usuarios/:id/senha', async (req, res) => {
   const { id } = req.params;
   const { senhaAtual, novaSenha } = req.body;
 
-  const senhaValida =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{6,8}$/.test(
-      novaSenha
-    );
-  if (!senhaValida) {
-    return res.status(400).json({
-      error:
-        'A nova senha deve ter entre 6 e 8 caracteres, com maiúsculo, minúsculo e caractere especial.',
-    });
+  const erroSenha = validarSenha(novaSenha);
+  if (erroSenha) {
+    return res.status(400).json({ error: erroSenha });
   }
 
   try {
