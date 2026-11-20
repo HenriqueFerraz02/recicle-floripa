@@ -12,6 +12,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import logoRecicle from '../assets/png.png';
 import { getResidueVisual, normalizeResidueText } from '../utils/residueVisual';
+import BotaoTema from '../components/BotaoTema';
 import { API_BASE_URL } from '../utils/api';
 
 export default function Home() {
@@ -66,13 +67,16 @@ export default function Home() {
               </div>
               <span>Recicle Floripa</span>
             </div>
-            <button
-              className='home-icon-button'
-              onClick={() => navigate('/configuracoes')}
-              aria-label='Configurações'
-            >
-              <Settings size={17} />
-            </button>
+            <div className='home-header-actions'>
+              <BotaoTema className='home-icon-button' />
+              <button
+                className='home-icon-button'
+                onClick={() => navigate('/configuracoes')}
+                aria-label='Configurações'
+              >
+                <Settings size={18} />
+              </button>
+            </div>
           </div>
 
           <div className='home-greeting'>

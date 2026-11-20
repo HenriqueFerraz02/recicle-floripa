@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api';
 import { senhaValida } from '../utils/senha';
+import PreferenciasAparencia from '../components/PreferenciasAparencia';
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -150,6 +151,8 @@ export default function Configuracoes() {
             <button className='settings-tool' onClick={() => abrirModal('tabelaMensal')}><span className='settings-tool-icon'><BarChart3 size={17} /></span><span><strong>Relatório de reciclagem</strong><small>Confira seus descartes e pontos por mês.</small></span><ChevronRight size={16} /></button>
             <button className='settings-tool' onClick={() => abrirModal('seguranca')}><span className='settings-tool-icon'><ShieldCheck size={17} /></span><span><strong>Login e segurança</strong><small>Altere sua senha com segurança.</small></span><ChevronRight size={16} /></button>
           </div>
+
+          <PreferenciasAparencia />
 
           <div className='settings-logout'><div><strong>Encerrar sessão</strong><small>Desconectar sua conta com segurança.</small></div><button onClick={handleLogout}><LogOut size={14} /> Sair</button></div>
         </section>

@@ -6,6 +6,7 @@ import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
 import DocumentoLegal from './DocumentoLegal';
 import { cpfValido, dataNascimentoValida, normalizarEmail, regrasSenha, senhaValida } from '../utils/senha';
+import BotaoTema from '../components/BotaoTema';
 
 const maskCPF = (value) => value
   .replace(/\D/g, '')
@@ -96,6 +97,7 @@ const Cadastro = () => {
             <img src={logoRecicle} alt='Logo Recicle Floripa' />
           </div>
           <span>Recicle Floripa</span>
+          <BotaoTema />
         </header>
 
         <div className='auth-content register-content'>

@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logoRecicle from '../assets/png.png';
+import BotaoTema from '../components/BotaoTema';
 
 const ATUALIZADO_EM = '20/11/2026';
 const REPOSITORIO = 'https://github.com/HenriqueFerraz02/recicle-floripa';
@@ -134,6 +135,7 @@ export default function DocumentoLegal({ tipo, onVoltar }) {
             <img src={logoRecicle} alt='Logo Recicle Floripa' />
           </div>
           <span>Recicle Floripa</span>
+          <BotaoTema />
         </header>
 
         <button type='button' className='legal-back' onClick={voltar}>

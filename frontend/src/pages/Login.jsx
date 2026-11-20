@@ -4,6 +4,7 @@ import axios from 'axios';
 import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
 import { normalizarEmail } from '../utils/senha';
+import BotaoTema from '../components/BotaoTema';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -47,6 +48,7 @@ const Login = () => {
             <img src={logoRecicle} alt='Logo Recicle Floripa' />
           </div>
           <span>Recicle Floripa</span>
+          <BotaoTema />
         </header>
 
         <div className='auth-content'>
@@ -108,7 +110,10 @@ const Login = () => {
         </form>
         
         <p className='auth-footer'>
-          Ao entrar, você concorda com os termos de uso e a privacidade.
+          Ao entrar, você concorda com os{' '}
+          <button type='button' className='auth-text-button' onClick={() => navigate('/termos')}>Termos de Uso</button>
+          {' '}e a{' '}
+          <button type='button' className='auth-text-button' onClick={() => navigate('/privacidade')}>Política de Privacidade</button>.
         </p>
         </div>
       </section>
