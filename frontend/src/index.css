@@ -3194,3 +3194,46 @@ input {
 .home-content {
   padding-bottom: 110px;
 }
+
+/* Ecopontos mais próximos */
+.points-locate-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 14px 0 6px;
+}
+
+.points-locate-note {
+  margin: 6px 0 14px;
+  color: #5c735f;
+  font-size: calc(0.82rem * var(--escala-texto, 1));
+  line-height: 1.45;
+}
+
+.points-locate-error {
+  margin: 6px 0 14px;
+  padding: 10px 12px;
+  color: #a1262a;
+  background: #fff0f0;
+  border: 1px solid #f2c9c9;
+  border-radius: 10px;
+  font-size: calc(0.85rem * var(--escala-texto, 1));
+  line-height: 1.45;
+}
+
+.points-nearest {
+  margin-bottom: 18px;
+}
+
+.points-nearest .points-section-heading {
+  align-items: center;
+}
+
+.catalog-near-link {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: calc(0.83rem * var(--escala-texto, 1));
+  text-decoration: underline;
+}

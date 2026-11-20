@@ -170,6 +170,24 @@ routes.get('/catalogo', async (req, res) => {
   }
 });
 
+// Lista de ecopontos ativos. A distância até o usuário é calculada no
+// próprio celular: a localização dele nunca é enviada para o servidor.
+routes.get('/ecopontos', async (req, res) => {
+  try {
+    const resultado = await pool.query(
+      `SELECT id, nome, endereco, bairro, horario, materiais, map_query,
+              latitude::float AS latitude, longitude::float AS longitude
+         FROM ecopontos
+        WHERE ativo
+        ORDER BY nome`
+    );
+    return res.json(resultado.rows);
+  } catch (err) {
+    console.error('❌ Erro ao listar ecopontos:', err);
+    return res.status(500).json({ error: 'Erro ao buscar os ecopontos.' });
+  }
+});
+
 // ==========================================
 // ROTA DE IA: ANÁLISE DE RESÍDUOS POR IMAGEM
 // ==========================================

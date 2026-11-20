@@ -57,14 +57,16 @@ CREATE TABLE IF NOT EXISTS ecopontos (
   ativo      BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-INSERT INTO ecopontos (nome, endereco, bairro, horario, materiais, map_query) VALUES
-('Ecoponto Itacorubi', 'Rodovia Admar Gonzaga, 72 - Itacorubi', 'Itacorubi', 'Segunda a Sábado: 07h às 19h',
-  ARRAY['Plástico','Vidro','Metal','Papel','Eletrônicos','Óleo de Cozinha'], 'Ecoponto+Itacorubi+Florianopolis'),
-('Ecoponto Capoeiras', 'Rua Professor Egídio Ferreira, s/n - Capoeiras', 'Continente', 'Segunda a Sábado: 07h às 19h',
-  ARRAY['Plástico','Vidro','Metal','Papel','Móveis','Entulho'], 'Ecoponto+Capoeiras+Florianopolis'),
-('Ecoponto Rio Tavares', 'Rodovia Francisco Magno Vieira (SC-405), 4500 - Rio Tavares', 'Sul da Ilha', 'Segunda a Sábado: 07h às 19h',
-  ARRAY['Plástico','Vidro','Metal','Papel','Podas','Eletrônicos'], 'Ecoponto+Rio+Tavares+Florianopolis'),
-('Ecoponto Canasvieiras', 'Rua Francisco Faustino Martins, s/n - Canasvieiras', 'Norte da Ilha', 'Segunda a Sábado: 07h às 19h',
-  ARRAY['Plástico','Vidro','Metal','Papel','Volumosos'], 'Ecoponto+Canasvieiras+Florianopolis'),
-('Ponto de Coleta Centro', 'Avenida Paulo Fontes (Terminal Integrado) - Centro', 'Centro', 'Diariamente: 06h às 22h',
-  ARRAY['Plástico','Papel','Metal','Pilhas e Baterias'], 'Terminal+Centro+Florianopolis');
+-- Lista oficial (FloripAmanhã, abr/2026). Coordenadas que faltam:
+-- veja backend/database/migracoes/2026-11-20_ecopontos_reais.sql, passo 2.
+INSERT INTO ecopontos (nome, endereco, bairro, horario, materiais, map_query, latitude, longitude) VALUES
+('Ecoponto Itacorubi', 'Rodovia Admar Gonzaga, 72 - Itacorubi', 'Itacorubi',
+  'Todos os dias: 7h às 19h',
+  ARRAY['Plástico','Papel','Metal','Vidro','Eletrônicos','Óleo de Cozinha','Pilhas e Baterias','Móveis','Entulho','Podas'],
+  'Ecoponto+Itacorubi+Florianopolis', NULL, NULL),
+('Ecoponto Morro das Pedras', 'Rua Francisco Vieira, 198 - Morro das Pedras', 'Morro das Pedras',
+  'Todos os dias: 7h às 12h e 13h às 18h30',
+  ARRAY['Plástico','Papel','Metal','Vidro','Eletrônicos','Óleo de Cozinha','Pilhas e Baterias','Móveis','Entulho','Podas'],
+  'Ecoponto+Morro+das+Pedras+Florianopolis', NULL, NULL),
+('Ecoponto Canasvieiras', 'Rua Desembargador Maurílio Coimbra - Canasvieiras', 'Canasvieiras',
+  'Seg a sex: 7h30 às 12h e 13h às 17h30;

@@ -1362,3 +1362,13 @@
   color: #bdc5be;
 }
 
+[data-tema='escuro'] .points-locate-note {
+  color: #bdc5be;
+}
+
+[data-tema='escuro'] .points-locate-error {
+  color: #d9acae;
+  background-color: #2b1010;
+  border-color: #6a3838;
+}
+

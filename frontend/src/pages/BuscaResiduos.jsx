@@ -51,9 +51,12 @@ export default function BuscaResiduos() {
         {item.perigoso && <span className='catalog-warning'>Resíduo perigoso: não descarte no lixo comum</span>}
         {item.ecopontos.length > 0 ? (
           <span className='catalog-ecopontos'>
-            {item.ecopontos.map((ponto) => (
+            {item.ecopontos.length >= 3 ? (
+              <span className='point-hours'><MapPin size={12} /> Aceito em {item.ecopontos.length} ecopontos da cidade</span>
+            ) : item.ecopontos.map((ponto) => (
               <span key={ponto.nome} className='point-hours'><MapPin size={12} /> {ponto.nome} · <Clock3 size={12} /> {ponto.horario}</span>
             ))}
+            <button type='button' className='auth-text-button catalog-near-link' onClick={() => navigate('/pontos')}>Ver os mais próximos de mim</button>
           </span>
         ) : (
           <span className='point-hours'>Nenhum ecoponto cadastrado aceita este item. Procure a coleta especial.</span>
