@@ -1372,3 +1372,102 @@
   border-color: #6a3838;
 }
 
+[data-tema='escuro'] .profile-edit-button {
+  color: #c4e0ce;
+  background-color: #1c271a;
+  border-color: #4a604c;
+}
+
+[data-tema='escuro'] .profile-notice.is-ok {
+  color: #bfe0cc;
+  background-color: #1c2a1a;
+  border-color: #466146;
+}
+
+[data-tema='escuro'] .profile-notice.is-erro {
+  color: #d9acae;
+  background-color: #2b1010;
+  border-color: #6a3838;
+}
+
+[data-tema='escuro'] .profile-edit {
+  background-color: #1a1a1a;
+  border-color: #455549;
+}
+
+[data-tema='escuro'] .profile-edit label > span {
+  color: #cadbcf;
+}
+
+[data-tema='escuro'] .profile-edit input,
+[data-tema='escuro'] .profile-edit select {
+  color: #d0e3d9;
+  background-color: #1a1a1a;
+  border-color: #5e7262;
+}
+
+[data-tema='escuro'] .profile-edit small,
+[data-tema='escuro'] .profile-photo-actions small {
+  color: #bdc5be;
+}
+
+[data-tema='escuro'] .profile-remove-photo {
+  color: #d9acae;
+  background-color: transparent;
+}
+
+[data-tema='escuro'] .profile-section-heading h2 small {
+  color: #bdc5be;
+}
+
+[data-tema='escuro'] .profile-empty {
+  color: #bdc5be;
+}
+
+[data-tema='escuro'] .profile-impact-label {
+  color: #cadbcf;
+}
+
+[data-tema='escuro'] .profile-impact-bar {
+  background-color: #222b21;
+}
+
+[data-tema='escuro'] .profile-impact-bar span {
+  background-color: #1f7b43;
+}
+
+[data-tema='escuro'] .profile-impact strong {
+  color: #c4e0ce;
+}
+
+[data-tema='escuro'] .profile-badges-real .profile-badge {
+  background-color: #1a1a1a;
+  border-color: #455549;
+}
+
+[data-tema='escuro'] .profile-badges-real .profile-badge.is-earned {
+  color: #b6dec5;
+  background-color: #1b2819;
+  border-color: #527355;
+}
+
+[data-tema='escuro'] .profile-badges-real .profile-badge.is-locked {
+  color: #839787;
+}
+
+[data-tema='escuro'] .profile-badge-status {
+  color: #bdc5be;
+}
+
+[data-tema='escuro'] .profile-badge.is-earned .profile-badge-status {
+  color: #bfe0cc;
+}
+
+[data-tema='escuro'] .profile-badge-progress {
+  background-color: #222b21;
+}
+
+[data-tema='escuro'] .profile-badge-progress span {
+  background-color: #1f7b43;
+}
+

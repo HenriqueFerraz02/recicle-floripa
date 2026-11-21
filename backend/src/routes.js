@@ -13,6 +13,7 @@ const {
 } = require('./validacoes');
 const { gerarToken, exigirLogin, exigirDono } = require('./auth');
 const { limiteLogin, limiteCadastro, limiteIA } = require('./limites');
+const { BAIRROS } = require('./bairros');
 
 const SALT_ROUNDS = 10;
 const MAX_CAMERA_FRAME_BYTES = 8 * 1024 * 1024;
@@ -480,7 +481,7 @@ routes.get('/usuarios/:id', exigirLogin, exigirDono('id'), async (req, res) => {
   const { id } = req.params;
   try {
     const usuario = await pool.query(
-      'SELECT nome, email, cpf, pontos FROM usuarios WHERE id = $1',
+      'SELECT nome, email, cpf, pontos, apelido, bairro, foto, criado_em FROM usuarios WHERE id = $1',
       [id]
     );
     if (usuario.rows.length > 0) {
@@ -507,6 +508,135 @@ routes.put('/usuarios/:id', exigirLogin, exigirDono('id'), async (req, res) => {
     return res.json({ message: 'Perfil atualizado com sucesso.' });
   } catch (err) {
     return res.status(500).json({ error: 'Erro ao atualizar perfil.' });
+  }
+});
+
+// 6b. Editar perfil: nome, @usuário e bairro
+routes.put('/usuarios/:id/perfil', exigirLogin, exigirDono('id'), async (req, res) => {
+  const { id } = req.params;
+  const nome = String(req.body.nome || '').trim();
+  const apelidoBruto = String(req.body.apelido || '').trim().replace(/^@/, '').toLowerCase();
+  const apelido = apelidoBruto || null;
+  const bairro = req.body.bairro ? String(req.body.bairro) : null;
+
+  if (nome.length < 2 || nome.length > 100) {
+    return res.status(400).json({ error: 'O nome precisa ter entre 2 e 100 letras.' });
+  }
+  if (apelido && !/^[a-z0-9_.]{3,30}$/.test(apelido)) {
+    return res.status(400).json({
+      error: 'O @usuário precisa ter de 3 a 30 caracteres: letras sem acento, números, ponto ou _.',
+    });
+  }
+  if (bairro && !BAIRROS.includes(bairro)) {
+    return res.status(400).json({ error: 'Escolha um bairro da lista.' });
+  }
+
+  try {
+    if (apelido) {
+      const emUso = await pool.query(
+        'SELECT 1 FROM usuarios WHERE LOWER(apelido) = $1 AND id <> $2',
+        [apelido, id]
+      );
+      if (emUso.rows.length > 0) {
+        return res.status(409).json({ error: 'Esse @usuário já está em uso. Escolha outro.' });
+      }
+    }
+    const resultado = await pool.query(
+      'UPDATE usuarios SET nome = $1, apelido = $2, bairro = $3 WHERE id = $4 RETURNING nome, apelido, bairro',
+      [nome, apelido, bairro, id]
+    );
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+    return res.json(resultado.rows[0]);
+  } catch (err) {
+    console.error('❌ Erro ao editar perfil:', err.code, err.constraint);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Esse @usuário já está em uso. Escolha outro.' });
+    }
+    return res.status(500).json({ error: 'Erro ao salvar o perfil.' });
+  }
+});
+
+// 6c. Foto de perfil (opcional). O celular já manda reduzida (JPEG 320x320).
+const FOTO_MAXIMA = 300 * 1024; // caracteres em base64 (~220 KB de imagem)
+routes.put('/usuarios/:id/foto', exigirLogin, exigirDono('id'), async (req, res) => {
+  const { id } = req.params;
+  const foto = String(req.body.foto || '');
+  if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(foto)) {
+    return res.status(400).json({ error: 'Envie uma imagem JPG, PNG ou WEBP.' });
+  }
+  if (foto.length > FOTO_MAXIMA) {
+    return res.status(413).json({ error: 'A foto ficou grande demais. Tente outra imagem.' });
+  }
+  try {
+    const resultado = await pool.query('UPDATE usuarios SET foto = $1 WHERE id = $2', [foto, id]);
+    if (resultado.rowCount === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+    return res.json({ message: 'Foto atualizada.' });
+  } catch (err) {
+    console.error('❌ Erro ao salvar foto:', err);
+    return res.status(500).json({ error: 'Erro ao salvar a foto.' });
+  }
+});
+
+routes.delete('/usuarios/:id/foto', exigirLogin, exigirDono('id'), async (req, res) => {
+  try {
+    await pool.query('UPDATE usuarios SET foto = NULL WHERE id = $1', [req.params.id]);
+    return res.json({ message: 'Foto removida.' });
+  } catch (err) {
+    console.error('❌ Erro ao remover foto:', err);
+    return res.status(500).json({ error: 'Erro ao remover a foto.' });
+  }
+});
+
+// 6d. Resumo do perfil: impacto por material e ranking real do bairro
+routes.get('/usuarios/:id/resumo', exigirLogin, exigirDono('id'), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const usuario = await pool.query(
+      'SELECT pontos, bairro, criado_em FROM usuarios WHERE id = $1',
+      [id]
+    );
+    if (usuario.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+    const { pontos, bairro, criado_em } = usuario.rows[0];
+
+    const porMaterial = await pool.query(
+      `SELECT categoria, COUNT(*)::int AS total
+         FROM residuos WHERE usuario_id = $1
+        GROUP BY categoria ORDER BY total DESC, categoria`,
+      [id]
+    );
+    const totalDescartes = porMaterial.rows.reduce((soma, linha) => soma + linha.total, 0);
+
+    let ranking = null;
+    if (bairro && bairro !== 'Fora de Florianópolis') {
+      // RANK(): quem tem os mesmos pontos fica na mesma posição
+      const posicao = await pool.query(
+        `SELECT posicao, participantes FROM (
+           SELECT id, RANK() OVER (ORDER BY pontos DESC) AS posicao,
+                  COUNT(*) OVER () AS participantes
+             FROM usuarios WHERE bairro = $1
+         ) r WHERE id = $2`,
+        [bairro, id]
+      );
+      const linha = posicao.rows[0];
+      if (linha) ranking = { bairro, posicao: Number(linha.posicao), participantes: Number(linha.participantes) };
+    }
+
+    return res.json({
+      pontos: pontos || 0,
+      total_descartes: totalDescartes,
+      por_material: porMaterial.rows,
+      membro_desde: criado_em,
+      ranking,
+    });
+  } catch (err) {
+    console.error('❌ Erro ao montar resumo do perfil:', err);
+    return res.status(500).json({ error: 'Erro ao carregar o resumo do perfil.' });
   }
 });
 

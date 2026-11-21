@@ -16,8 +16,14 @@ CREATE TABLE IF NOT EXISTS usuarios (
   cpf             VARCHAR(14)  UNIQUE,
   data_nascimento DATE,
   pontos          INTEGER NOT NULL DEFAULT 0,
+  apelido         VARCHAR(30),           -- @usuário escolhido no perfil
+  bairro          VARCHAR(60),           -- usado no ranking do bairro
+  foto            TEXT,                  -- opcional: JPEG 320x320 em base64
   criado_em       TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS usuarios_apelido_unico
+  ON usuarios (LOWER(apelido)) WHERE apelido IS NOT NULL;
 
 -- E-mail é salvo em minúsculas pelo backend; o índice garante que
 -- Teste01@x.com e teste01@x.com não virem duas contas.

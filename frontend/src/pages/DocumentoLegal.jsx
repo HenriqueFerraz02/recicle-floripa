@@ -73,6 +73,7 @@ const DOCUMENTOS = {
           'CPF: para evitar contas duplicadas.',
           'Data de nascimento: para saber se o usuário é menor de idade.',
           'Descartes registrados: tipo de resíduo, quantidade, local digitado por você e data, além dos pontos acumulados.',
+          'Perfil (opcional): @usuário, bairro e foto. O bairro serve para o ranking do bairro, que mostra só a sua posição. A foto aparece apenas no seu perfil e pode ser removida a qualquer momento.',
           'Localização: só quando você pede os ecopontos mais próximos. A distância é calculada no seu aparelho; a localização não é enviada ao servidor nem guardada.',
         ],
       },

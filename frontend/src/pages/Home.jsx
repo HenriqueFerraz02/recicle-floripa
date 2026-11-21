@@ -85,9 +85,9 @@ export default function Home() {
               <h1>Olá, {usuario.nome?.split(' ')[0] || 'Usuário'}!</h1>
               <p>Pronto para fazer a diferença hoje?</p>
             </div>
-            <div className='home-avatar'>
-              <UserRound size={24} />
-            </div>
+            <button type='button' className={`home-avatar ${usuario.foto ? 'has-photo' : ''}`} onClick={() => navigate('/perfil')} aria-label='Abrir meu perfil'>
+              {usuario.foto ? <img src={usuario.foto} alt='' /> : <UserRound size={24} />}
+            </button>
           </div>
         </header>
 
