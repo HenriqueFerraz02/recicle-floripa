@@ -363,6 +363,13 @@ routes.post('/usuarios', async (req, res) => {
         .json({ error: 'Já existe uma conta com esse e-mail.' });
     }
 
+    const cpfEmUso = await pool.query('SELECT 1 FROM usuarios WHERE cpf = $1', [cpf]);
+    if (cpfEmUso.rows.length > 0) {
+      return res
+        .status(409)
+        .json({ error: 'Já existe uma conta com esse CPF.' });
+    }
+
     const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
     const novoUsuario = await pool.query(
       'INSERT INTO usuarios (nome, email, senha, cpf, data_nascimento, pontos) VALUES ($1, $2, $3, $4, $5, 0) RETURNING id, nome, email',
@@ -370,11 +377,20 @@ routes.post('/usuarios', async (req, res) => {
     );
     return res.status(201).json(novoUsuario.rows[0]);
   } catch (err) {
-    console.error(err);
+    // err.constraint diz qual regra de "valor único" foi quebrada
+    console.error('❌ Erro no cadastro:', err.code, err.constraint, err.detail);
     if (err.code === '23505') {
+      const regra = err.constraint || '';
+      if (regra.includes('cpf')) {
+        return res.status(409).json({ error: 'Já existe uma conta com esse CPF.' });
+      }
+      if (regra.includes('email')) {
+        return res.status(409).json({ error: 'Já existe uma conta com esse e-mail.' });
+      }
+      // ex.: usuarios_pkey, quando a sequência do id fica atrás dos dados
       return res
-        .status(409)
-        .json({ error: 'E-mail ou CPF já estão em uso.' });
+        .status(500)
+        .json({ error: 'Não foi possível criar a conta agora. Tente de novo mais tarde.' });
     }
     return res.status(500).json({ error: 'Erro ao cadastrar.' });
   }
