@@ -202,6 +202,11 @@
   background-color: #352c14;
 }
 
+[data-tema='escuro'] .points-streak.is-empty {
+  color: #bfe0cb;
+  background-color: #1d2b20;
+}
+
 [data-tema='escuro'] .points-icon,
 [data-tema='escuro'] .action-icon,
 [data-tema='escuro'] .history-icon {

@@ -14,6 +14,7 @@ import logoRecicle from '../assets/png.png';
 import { getResidueVisual, normalizeResidueText } from '../utils/residueVisual';
 import BotaoTema from '../components/BotaoTema';
 import { API_BASE_URL } from '../utils/api';
+import { diasSeguidos } from '../utils/sequencia';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -22,6 +23,11 @@ export default function Home() {
   const [carregando, setCarregando] = useState(true);
 
   const usuarioId = localStorage.getItem('usuario_id') || 1;
+
+  const sequencia = diasSeguidos(historico);
+  const textoSequencia = sequencia === 0
+    ? 'Registre um descarte hoje para começar a sua sequência de dias'
+    : `${sequencia} ${sequencia === 1 ? 'dia seguido' : 'dias seguidos'} registrando descartes`;
 
   const carregarDados = useCallback(async () => {
     try {
@@ -94,7 +100,18 @@ export default function Home() {
         <section className='home-content'>
           <div className='points-card'>
             <div>
-              <span className='home-eyebrow'>SEUS PONTOS TOTAIS</span>
+              <div className='points-head'>
+                <span className='home-eyebrow'>SEUS PONTOS TOTAIS</span>
+                {!carregando && (
+                  <span
+                    className={`points-streak ${sequencia === 0 ? 'is-empty' : ''}`}
+                    title={textoSequencia}
+                    aria-label={textoSequencia}
+                  >
+                    {sequencia === 0 ? '🌱 Comece hoje' : `🔥 ${sequencia} ${sequencia === 1 ? 'dia seguido' : 'dias seguidos'}`}
+                  </span>
+                )}
+              </div>
               <strong>{usuario.pontos || 0}</strong>
               <span className='points-label'>Pontos</span>
               <div className='points-progress'>
@@ -108,7 +125,6 @@ export default function Home() {
                 {Math.min(usuario.pontos || 0, 100)}/100 pontos
               </span>
             </div>
-            <span className='points-streak'>🔥 4 Dias</span>
           </div>
 
           <button

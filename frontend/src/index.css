@@ -456,16 +456,32 @@ input {
   font-size: calc(0.78rem * var(--escala-texto, 1));
 }
 
+.points-card > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.points-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+}
+
 .points-streak {
-  position: absolute;
-  top: 13px;
-  right: 13px;
   padding: 4px 6px;
+  white-space: nowrap;
   color: #966415;
   background: #fff3d6;
   border-radius: 5px;
   font-size: calc(0.78rem * var(--escala-texto, 1));
   font-weight: 800;
+}
+
+.points-streak.is-empty {
+  color: #1d6b3a;
+  background: #e3f4e6;
 }
 
 .points-icon,
