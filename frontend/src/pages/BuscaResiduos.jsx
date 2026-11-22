@@ -2,6 +2,7 @@ import { AlertTriangle, ArrowLeft, Clock3, MapPin, Search, Trash2 } from 'lucide
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api';
+import { MENSAGEM_SEM_CONEXAO } from '../utils/sessao';
 
 export default function BuscaResiduos() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ export default function BuscaResiduos() {
         if (!resposta.ok) throw new Error(dados.error || 'Erro ao buscar.');
         setResultados(dados);
       } catch (err) {
-        if (err.name !== 'AbortError') setErro(err.message || 'Servidor indisponível. Tente novamente.');
+        if (err.name !== 'AbortError') setErro(err instanceof TypeError ? MENSAGEM_SEM_CONEXAO : err.message || MENSAGEM_SEM_CONEXAO);
       } finally {
         if (!controle.signal.aborted) setCarregando(false);
       }

@@ -7,6 +7,7 @@ import { API_BASE_URL } from '../utils/api';
 import DocumentoLegal from './DocumentoLegal';
 import { cpfValido, dataNascimentoValida, normalizarEmail, regrasSenha, senhaValida } from '../utils/senha';
 import BotaoTema from '../components/BotaoTema';
+import { MENSAGEM_SEM_CONEXAO } from '../utils/sessao';
 
 const maskCPF = (value) => value
   .replace(/\D/g, '')
@@ -69,7 +70,7 @@ const Cadastro = () => {
         navigate('/');
       }
     } catch (error) {
-      setErro(error.response?.data?.error || 'Erro ao conectar com o servidor.');
+      setErro(error.response?.data?.error || MENSAGEM_SEM_CONEXAO);
     }
   };
 

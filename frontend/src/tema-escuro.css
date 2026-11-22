@@ -1471,3 +1471,15 @@
   background-color: #1f7b43;
 }
 
+[data-tema='escuro'] .server-wake {
+  color: #d4e8dd;
+  background-color: #352f14;
+  border-color: #e4c45a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.54);
+}
+
+[data-tema='escuro'] .server-wake-spinner {
+  border-color: #d9be5a;
+  border-top-color: #0e291a;
+}
+

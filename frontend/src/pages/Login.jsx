@@ -5,7 +5,7 @@ import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
 import { normalizarEmail } from '../utils/senha';
 import BotaoTema from '../components/BotaoTema';
-import { salvarSessao } from '../utils/sessao';
+import { MENSAGEM_SEM_CONEXAO, salvarSessao } from '../utils/sessao';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -30,7 +30,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Erro ao efetuar login:", error);
-      setErro(error.response?.data?.error || 'Servidor offline ou e-mail/senha incorretos.');
+      setErro(error.response?.data?.error || MENSAGEM_SEM_CONEXAO);
     } finally {
       setLoading(false);
     }

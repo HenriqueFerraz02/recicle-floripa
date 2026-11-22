@@ -14,10 +14,12 @@ import Coleta from './pages/Coleta';
 import BuscaResiduos from './pages/BuscaResiduos';
 import DocumentoLegal from './pages/DocumentoLegal';
 import RotaProtegida from './components/RotaProtegida';
+import AvisoServidor from './components/AvisoServidor';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <AvisoServidor />
       <Routes>
         {/* Rota inicial redireciona para login */}
         <Route path='/' element={<Navigate to='/login' replace />} />
