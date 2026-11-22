@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Crown, LogOut, Medal, Settings, Ship, TreePine, UserRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api';
+import { encerrarSessao } from '../utils/sessao';
 
 export default function Perfil() {
   const navigate = useNavigate();
@@ -35,9 +36,7 @@ export default function Perfil() {
 
   const sair = () => {
     if (!window.confirm('Tem certeza de que deseja sair da sua conta?')) return;
-    localStorage.removeItem('usuario_id');
-    localStorage.removeItem('usuarioNome');
-    localStorage.removeItem('loginData');
+    encerrarSessao();
     navigate('/login');
   };
 

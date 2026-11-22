@@ -13,6 +13,7 @@ import Perfil from './pages/Perfil';
 import Coleta from './pages/Coleta';
 import BuscaResiduos from './pages/BuscaResiduos';
 import DocumentoLegal from './pages/DocumentoLegal';
+import RotaProtegida from './components/RotaProtegida';
 
 export default function App() {
   return (
@@ -30,26 +31,26 @@ export default function App() {
         <Route path='/privacidade' element={<DocumentoLegal tipo='privacidade' />} />
 
         {/* Painel Principal */}
-        <Route path='/home' element={<Home />} />
+        <Route path='/home' element={<RotaProtegida><Home /></RotaProtegida>} />
 
         {/* Fluxo de IA e Descarte */}
-        <Route path='/scanner' element={<Scanner />} />
-        <Route path='/comprovar-descarte' element={<ComprovarDescarte />} />
+        <Route path='/scanner' element={<RotaProtegida><Scanner /></RotaProtegida>} />
+        <Route path='/comprovar-descarte' element={<RotaProtegida><ComprovarDescarte /></RotaProtegida>} />
 
         {/* Ecopontos e Mapa */}
-        <Route path='/pontos' element={<PontosEntrega />} />
+        <Route path='/pontos' element={<RotaProtegida><PontosEntrega /></RotaProtegida>} />
 
         {/* Configurações da Conta */}
-        <Route path='/configuracoes' element={<Configuracoes />} />
+        <Route path='/configuracoes' element={<RotaProtegida><Configuracoes /></RotaProtegida>} />
 
         {/* Guia de descarte e coleta especial */}
-        <Route path='/servicos' element={<Servicos />} />
-        <Route path='/historico' element={<Historico />} />
-        <Route path='/perfil' element={<Perfil />} />
-        <Route path='/coleta' element={<Coleta />} />
+        <Route path='/servicos' element={<RotaProtegida><Servicos /></RotaProtegida>} />
+        <Route path='/historico' element={<RotaProtegida><Historico /></RotaProtegida>} />
+        <Route path='/perfil' element={<RotaProtegida><Perfil /></RotaProtegida>} />
+        <Route path='/coleta' element={<RotaProtegida><Coleta /></RotaProtegida>} />
 
         {/* Busca no catálogo oficial de resíduos (IBAMA) */}
-        <Route path='/busca' element={<BuscaResiduos />} />
+        <Route path='/busca' element={<RotaProtegida><BuscaResiduos /></RotaProtegida>} />
 
         {/* Rota coringa para rotas não encontradas */}
         <Route path='*' element={<Navigate to='/home' replace />} />

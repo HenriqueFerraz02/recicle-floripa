@@ -5,11 +5,13 @@ import logoRecicle from '../assets/png.png';
 import { API_BASE_URL } from '../utils/api';
 import { normalizarEmail } from '../utils/senha';
 import BotaoTema from '../components/BotaoTema';
+import { salvarSessao } from '../utils/sessao';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [erro, setErro] = useState('');
+  // ?expirou=1: veio de uma sessão vencida (utils/sessao.js)
+  const [erro, setErro] = useState(() => (new URLSearchParams(window.location.search).has('expirou') ? 'Sua sessão expirou. Entre de novo.' : ''));
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -21,15 +23,9 @@ const Login = () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/login`, { email: normalizarEmail(email), senha });
       
-      if (response.data) {
-        // Salva nos formatos das duas ramificações para dar suporte a todas as telas do app
-        localStorage.setItem('loginData', JSON.stringify(response.data));
-        
-        if (response.data.user) {
-          localStorage.setItem('usuario_id', response.data.user.id);
-          localStorage.setItem('usuarioNome', response.data.user.nome);
-        }
-        
+      if (response.data?.token && response.data.user) {
+        // Guarda o token: ele vai em todo pedido à API (utils/sessao.js)
+        salvarSessao(response.data);
         navigate('/home');
       }
     } catch (error) {

@@ -11,6 +11,8 @@ const {
   formatarCpf,
   converterDataNascimento,
 } = require('./validacoes');
+const { gerarToken, exigirLogin, exigirDono } = require('./auth');
+const { limiteLogin, limiteCadastro, limiteIA } = require('./limites');
 
 const SALT_ROUNDS = 10;
 const MAX_CAMERA_FRAME_BYTES = 8 * 1024 * 1024;
@@ -191,7 +193,7 @@ routes.get('/ecopontos', async (req, res) => {
 // ==========================================
 // ROTA DE IA: ANÁLISE DE RESÍDUOS POR IMAGEM
 // ==========================================
-routes.post('/ia/analisar', receberFrameDaCamera, async (req, res) => {
+routes.post('/ia/analisar', exigirLogin, limiteIA, receberFrameDaCamera, async (req, res) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -261,7 +263,7 @@ routes.post('/ia/analisar', receberFrameDaCamera, async (req, res) => {
 // ==========================================================
 // ROTA DE IA: VALIDAÇÃO DE DESCARTE NA LIXEIRA (ANTI-FRAUDE)
 // ==========================================================
-routes.post('/ia/validar-descarte', receberFrameDaCamera, async (req, res) => {
+routes.post('/ia/validar-descarte', exigirLogin, limiteIA, receberFrameDaCamera, async (req, res) => {
   try {
     const { categoria, item } = req.body;
 
@@ -327,7 +329,7 @@ routes.post('/ia/validar-descarte', receberFrameDaCamera, async (req, res) => {
 });
 
 // 1. Cadastro de Usuário
-routes.post('/usuarios', async (req, res) => {
+routes.post('/usuarios', limiteCadastro, async (req, res) => {
   const { nome, senha } = req.body;
   const email = normalizarEmail(req.body.email);
 
@@ -397,7 +399,7 @@ routes.post('/usuarios', async (req, res) => {
 });
 
 // 2. Login Autenticação
-routes.post('/login', async (req, res) => {
+routes.post('/login', limiteLogin, async (req, res) => {
   const { senha } = req.body;
   const email = normalizarEmail(req.body.email);
   try {
@@ -420,6 +422,7 @@ routes.post('/login', async (req, res) => {
 
     return res.json({
       message: 'Login realizado!',
+      token: gerarToken(usuario),
       user: { id: usuario.id, nome: usuario.nome, email: usuario.email },
     });
   } catch (err) {
@@ -429,9 +432,10 @@ routes.post('/login', async (req, res) => {
 });
 
 // 3. Registrar Coleta Inteligente + Somar 5 Pontos
-routes.post('/residuos', async (req, res) => {
-  const { categoria, tipo_reciclagem, quantidade, localizacao, usuario_id } =
-    req.body;
+routes.post('/residuos', exigirLogin, async (req, res) => {
+  const { categoria, tipo_reciclagem, quantidade, localizacao } = req.body;
+  // o dono do descarte vem do token, não do que o app manda
+  const usuario_id = req.usuarioId;
 
   try {
     await pool.query(
@@ -457,7 +461,7 @@ routes.post('/residuos', async (req, res) => {
 });
 
 // 4. Listar Histórico Completo
-routes.get('/residuos/:usuario_id', async (req, res) => {
+routes.get('/residuos/:usuario_id', exigirLogin, exigirDono('usuario_id'), async (req, res) => {
   const { usuario_id } = req.params;
   try {
     const coletas = await pool.query(
@@ -472,7 +476,7 @@ routes.get('/residuos/:usuario_id', async (req, res) => {
 });
 
 // 5. Buscar Dados do Usuário
-routes.get('/usuarios/:id', async (req, res) => {
+routes.get('/usuarios/:id', exigirLogin, exigirDono('id'), async (req, res) => {
   const { id } = req.params;
   try {
     const usuario = await pool.query(
@@ -489,7 +493,7 @@ routes.get('/usuarios/:id', async (req, res) => {
 });
 
 // 6. Atualizar Nome do Usuário
-routes.put('/usuarios/:id', async (req, res) => {
+routes.put('/usuarios/:id', exigirLogin, exigirDono('id'), async (req, res) => {
   const { id } = req.params;
   const { nome } = req.body;
   if (!nome || nome.trim().length === 0) {
@@ -507,7 +511,7 @@ routes.put('/usuarios/:id', async (req, res) => {
 });
 
 // 7. Alterar Senha com Validação da Senha Atual
-routes.put('/usuarios/:id/senha', async (req, res) => {
+routes.put('/usuarios/:id/senha', exigirLogin, exigirDono('id'), async (req, res) => {
   const { id } = req.params;
   const { senhaAtual, novaSenha } = req.body;
 
@@ -549,7 +553,7 @@ routes.put('/usuarios/:id/senha', async (req, res) => {
 });
 
 // 8. Excluir um registro de coleta e subtrair 5 pontos do usuário
-routes.delete('/residuos/:id', async (req, res) => {
+routes.delete('/residuos/:id', exigirLogin, async (req, res) => {
   const { id } = req.params;
   try {
     const buscaResiduo = await pool.query(
@@ -564,6 +568,9 @@ routes.delete('/residuos/:id', async (req, res) => {
     }
 
     const { usuario_id } = buscaResiduo.rows[0];
+    if (usuario_id !== req.usuarioId) {
+      return res.status(403).json({ error: 'Você só pode excluir os seus próprios descartes.' });
+    }
 
     await pool.query('DELETE FROM residuos WHERE id = $1', [id]);
 

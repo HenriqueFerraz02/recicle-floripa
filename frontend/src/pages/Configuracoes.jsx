@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api';
 import { senhaValida } from '../utils/senha';
 import PreferenciasAparencia from '../components/PreferenciasAparencia';
+import { encerrarSessao } from '../utils/sessao';
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -102,9 +103,7 @@ export default function Configuracoes() {
 
   const handleLogout = () => {
     if (!window.confirm('Tem certeza de que deseja sair da sua conta?')) return;
-    localStorage.removeItem('usuario_id');
-    localStorage.removeItem('usuarioNome');
-    localStorage.removeItem('loginData');
+    encerrarSessao();
     navigate('/login');
   };
 

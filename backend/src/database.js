@@ -12,9 +12,9 @@ if (!connectionString) {
 
 const pool = new Pool({
   connectionString: connectionString,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  // Confere o certificado do Neon (evita alguém se passar pelo banco).
+  // DATABASE_SSL=desligado só para um PostgreSQL local de testes.
+  ssl: process.env.DATABASE_SSL === 'desligado' ? false : { rejectUnauthorized: true },
   options: '-c client_encoding=UTF8',
 });
 
