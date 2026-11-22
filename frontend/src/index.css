@@ -3546,3 +3546,36 @@ input {
   .server-wake { transition: none; }
   .server-wake-spinner { animation-duration: 3s; }
 }
+
+/* --- CONFIRMAR E-MAIL E ESQUECI A SENHA --- */
+.auth-success {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  color: #1d6b3b;
+  background: #eaf8e8;
+  border: 1px solid #cfe7cf;
+  border-radius: 10px;
+  font-size: calc(0.86rem * var(--escala-texto, 1));
+  line-height: 1.45;
+}
+
+.codigo-input {
+  font-size: calc(1.5rem * var(--escala-texto, 1)) !important;
+  font-weight: 800;
+  letter-spacing: 0.5em;
+  text-align: center;
+}
+
+.auth-note {
+  margin: 14px 0 0;
+  color: #4f6b56;
+  font-size: calc(0.82rem * var(--escala-texto, 1));
+  line-height: 1.5;
+}
+
+.auth-forgot {
+  align-self: flex-end;
+  min-height: 36px;
+  font-size: calc(0.84rem * var(--escala-texto, 1));
+  text-decoration: underline;
+}

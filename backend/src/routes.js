@@ -12,7 +12,9 @@ const {
   converterDataNascimento,
 } = require('./validacoes');
 const { gerarToken, exigirLogin, exigirDono } = require('./auth');
-const { limiteLogin, limiteCadastro, limiteIA } = require('./limites');
+const { limiteLogin, limiteCadastro, limiteIA, limiteCodigo, limiteEnvioEmail } = require('./limites');
+const { criarCodigo, conferirCodigo } = require('./codigos');
+const { enviarCodigo } = require('./email');
 const { BAIRROS } = require('./bairros');
 
 const SALT_ROUNDS = 10;
@@ -375,10 +377,16 @@ routes.post('/usuarios', limiteCadastro, async (req, res) => {
 
     const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
     const novoUsuario = await pool.query(
-      'INSERT INTO usuarios (nome, email, senha, cpf, data_nascimento, pontos) VALUES ($1, $2, $3, $4, $5, 0) RETURNING id, nome, email',
+      'INSERT INTO usuarios (nome, email, senha, cpf, data_nascimento, pontos, email_verificado) VALUES ($1, $2, $3, $4, $5, 0, FALSE) RETURNING id, nome, email',
       [nome, email, senhaHash, cpf, data_nascimento]
     );
-    return res.status(201).json(novoUsuario.rows[0]);
+    const usuario = novoUsuario.rows[0];
+
+    // Manda o código de 6 dígitos para confirmar que o e-mail é real
+    const codigo = await criarCodigo(usuario.id, 'confirmar');
+    const emailEnviado = await enviarCodigo({ para: usuario.email, nome: usuario.nome, tipo: 'confirmar', codigo });
+
+    return res.status(201).json({ ...usuario, precisaConfirmar: true, emailEnviado });
   } catch (err) {
     // err.constraint diz qual regra de "valor único" foi quebrada
     console.error('❌ Erro no cadastro:', err.code, err.constraint, err.detail);
@@ -406,7 +414,7 @@ routes.post('/login', limiteLogin, async (req, res) => {
   try {
     // LOWER(email) também cobre contas antigas salvas com maiúsculas.
     const resultado = await pool.query(
-      'SELECT id, nome, email, senha FROM usuarios WHERE LOWER(email) = $1',
+      'SELECT id, nome, email, senha, email_verificado FROM usuarios WHERE LOWER(email) = $1',
       [email]
     );
 
@@ -421,6 +429,17 @@ routes.post('/login', limiteLogin, async (req, res) => {
       return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
     }
 
+    // Senha certa, mas e-mail ainda não confirmado: manda um código novo
+    if (!usuario.email_verificado) {
+      const codigo = await criarCodigo(usuario.id, 'confirmar');
+      await enviarCodigo({ para: usuario.email, nome: usuario.nome, tipo: 'confirmar', codigo });
+      return res.status(403).json({
+        error: 'Confirme seu e-mail para entrar. Enviamos um novo código.',
+        codigo: 'EMAIL_NAO_CONFIRMADO',
+        email: usuario.email,
+      });
+    }
+
     return res.json({
       message: 'Login realizado!',
       token: gerarToken(usuario),
@@ -429,6 +448,97 @@ routes.post('/login', limiteLogin, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Erro no servidor ao tentar logar.' });
+  }
+});
+
+// 2b. Confirmar o e-mail com o código de 6 dígitos (entra direto na conta)
+routes.post('/usuarios/confirmar-email', limiteCodigo, async (req, res) => {
+  const email = normalizarEmail(req.body.email);
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, nome, email, email_verificado FROM usuarios WHERE LOWER(email) = $1',
+      [email]
+    );
+    const usuario = rows[0];
+    if (!usuario) return res.status(400).json({ error: 'Código incorreto ou expirado.' });
+    if (usuario.email_verificado) {
+      return res.status(409).json({ error: 'Este e-mail já foi confirmado. Faça login.' });
+    }
+
+    const resultado = await conferirCodigo(usuario.id, 'confirmar', req.body.codigo);
+    if (!resultado.ok) return res.status(400).json({ error: resultado.motivo });
+
+    await pool.query('UPDATE usuarios SET email_verificado = TRUE WHERE id = $1', [usuario.id]);
+    return res.json({
+      message: 'E-mail confirmado!',
+      token: gerarToken(usuario),
+      user: { id: usuario.id, nome: usuario.nome, email: usuario.email },
+    });
+  } catch (err) {
+    console.error('❌ Erro ao confirmar e-mail:', err);
+    return res.status(500).json({ error: 'Erro ao confirmar o e-mail.' });
+  }
+});
+
+// 2c. Reenviar o código de confirmação
+// A resposta é sempre a mesma, para não revelar quais e-mails têm conta.
+routes.post('/usuarios/reenviar-codigo', limiteEnvioEmail, async (req, res) => {
+  const email = normalizarEmail(req.body.email);
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, nome, email FROM usuarios WHERE LOWER(email) = $1 AND NOT email_verificado',
+      [email]
+    );
+    if (rows[0]) {
+      const codigo = await criarCodigo(rows[0].id, 'confirmar');
+      await enviarCodigo({ para: rows[0].email, nome: rows[0].nome, tipo: 'confirmar', codigo });
+    }
+    return res.json({ message: 'Se a conta existir e ainda não estiver confirmada, enviamos um novo código.' });
+  } catch (err) {
+    console.error('❌ Erro ao reenviar código:', err);
+    return res.status(500).json({ error: 'Erro ao reenviar o código.' });
+  }
+});
+
+// 2d. Esqueci minha senha: manda um código para o e-mail
+routes.post('/senha/esqueci', limiteEnvioEmail, async (req, res) => {
+  const email = normalizarEmail(req.body.email);
+  try {
+    const { rows } = await pool.query('SELECT id, nome, email FROM usuarios WHERE LOWER(email) = $1', [email]);
+    if (rows[0]) {
+      const codigo = await criarCodigo(rows[0].id, 'senha');
+      await enviarCodigo({ para: rows[0].email, nome: rows[0].nome, tipo: 'senha', codigo });
+    }
+    // mesma resposta existindo ou não a conta
+    return res.json({ message: 'Se existir uma conta com esse e-mail, enviamos um código.' });
+  } catch (err) {
+    console.error('❌ Erro em esqueci a senha:', err);
+    return res.status(500).json({ error: 'Erro ao enviar o código.' });
+  }
+});
+
+// 2e. Criar nova senha com o código recebido
+routes.post('/senha/redefinir', limiteCodigo, async (req, res) => {
+  const email = normalizarEmail(req.body.email);
+  const { novaSenha } = req.body;
+
+  const erroSenha = validarSenha(novaSenha);
+  if (erroSenha) return res.status(400).json({ error: erroSenha });
+
+  try {
+    const { rows } = await pool.query('SELECT id FROM usuarios WHERE LOWER(email) = $1', [email]);
+    if (!rows[0]) return res.status(400).json({ error: 'Código incorreto ou expirado.' });
+
+    const resultado = await conferirCodigo(rows[0].id, 'senha', req.body.codigo);
+    if (!resultado.ok) return res.status(400).json({ error: resultado.motivo });
+
+    const senhaHash = await bcrypt.hash(novaSenha, SALT_ROUNDS);
+    // quem recebeu o código no e-mail também provou que o e-mail é dele
+    await pool.query('UPDATE usuarios SET senha = $1, email_verificado = TRUE WHERE id = $2', [senhaHash, rows[0].id]);
+    return res.json({ message: 'Senha alterada! Entre com a nova senha.' });
+  } catch (err) {
+    console.error('❌ Erro ao redefinir senha:', err);
+    return res.status(500).json({ error: 'Erro ao trocar a senha.' });
   }
 });
 

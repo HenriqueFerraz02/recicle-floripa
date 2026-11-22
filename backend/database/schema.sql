@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   apelido         VARCHAR(30),           -- @usuário escolhido no perfil
   bairro          VARCHAR(60),           -- usado no ranking do bairro
   foto            TEXT,                  -- opcional: JPEG 320x320 em base64
+  email_verificado BOOLEAN NOT NULL DEFAULT FALSE,  -- confirmado pelo código enviado por e-mail
   criado_em       TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -35,6 +36,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS usuarios_email_lower_unico
 -- ON DELETE CASCADE: ao excluir um usuário, seus descartes saem junto (LGPD).
 -- "quantidade" é texto porque o app envia tanto 1 quanto '1 un'.
 -- ---------------------------------------------------------------------
+-- Códigos de 6 dígitos enviados por e-mail (confirmar conta e trocar senha)
+CREATE TABLE IF NOT EXISTS codigos_email (
+  id           SERIAL PRIMARY KEY,
+  usuario_id   INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  tipo         VARCHAR(20) NOT NULL CHECK (tipo IN ('confirmar', 'senha')),
+  codigo_hash  CHAR(64) NOT NULL,
+  expira_em    TIMESTAMP NOT NULL,
+  tentativas   INTEGER NOT NULL DEFAULT 0,
+  criado_em    TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS residuos (
   id              SERIAL PRIMARY KEY,
   categoria       VARCHAR(50)  NOT NULL,

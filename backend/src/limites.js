@@ -34,4 +34,23 @@ const limiteIA = rateLimit({
   message: mensagem('Você usou a câmera muitas vezes seguidas. Espere alguns minutos.'),
 });
 
-module.exports = { limiteLogin, limiteCadastro, limiteIA };
+// Conferir códigos de 6 dígitos: 15 tentativas a cada 15 minutos por IP
+// (além do limite de 5 erros por código, em codigos.js)
+const limiteCodigo = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 15,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: mensagem('Muitas tentativas de código. Espere 15 minutos.'),
+});
+
+// Pedir e-mail com código: 5 por hora por IP (protege a cota do Brevo)
+const limiteEnvioEmail = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: mensagem('Muitos e-mails pedidos daqui. Tente de novo mais tarde.'),
+});
+
+module.exports = { limiteLogin, limiteCadastro, limiteIA, limiteCodigo, limiteEnvioEmail };

@@ -67,7 +67,8 @@ const Cadastro = () => {
       });
 
       if (response.status === 201) {
-        navigate('/');
+        // Conta criada: agora confirma o e-mail com o código enviado
+        navigate('/confirmar-email', { state: { email: response.data.email, emailEnviado: response.data.emailEnviado } });
       }
     } catch (error) {
       setErro(error.response?.data?.error || MENSAGEM_SEM_CONEXAO);

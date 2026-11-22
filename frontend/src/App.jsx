@@ -15,6 +15,8 @@ import BuscaResiduos from './pages/BuscaResiduos';
 import DocumentoLegal from './pages/DocumentoLegal';
 import RotaProtegida from './components/RotaProtegida';
 import AvisoServidor from './components/AvisoServidor';
+import ConfirmarEmail from './pages/ConfirmarEmail';
+import EsqueciSenha from './pages/EsqueciSenha';
 
 export default function App() {
   return (
@@ -27,6 +29,10 @@ export default function App() {
         {/* Autenticação */}
         <Route path='/login' element={<Login />} />
         <Route path='/cadastro' element={<Cadastro />} />
+
+        {/* Confirmação de e-mail e troca de senha (sem login) */}
+        <Route path='/confirmar-email' element={<ConfirmarEmail />} />
+        <Route path='/esqueci-senha' element={<EsqueciSenha />} />
 
         {/* Documentos legais (LGPD) */}
         <Route path='/termos' element={<DocumentoLegal tipo='termos' />} />

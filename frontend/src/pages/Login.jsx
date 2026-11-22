@@ -30,6 +30,10 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Erro ao efetuar login:", error);
+      if (error.response?.data?.codigo === 'EMAIL_NAO_CONFIRMADO') {
+        navigate('/confirmar-email', { state: { email: error.response.data.email, aviso: 'Falta confirmar seu e-mail. Enviamos um novo código.' } });
+        return;
+      }
       setErro(error.response?.data?.error || MENSAGEM_SEM_CONEXAO);
     } finally {
       setLoading(false);
@@ -87,6 +91,10 @@ const Login = () => {
               required
             />
           </label>
+
+          <button type='button' className='auth-text-button auth-forgot' onClick={() => navigate('/esqueci-senha')}>
+            Esqueci minha senha
+          </button>
 
           <button 
             type="submit" 

@@ -1483,3 +1483,13 @@
   border-top-color: #0e291a;
 }
 
+[data-tema='escuro'] .auth-success {
+  color: #bfe0cc;
+  background-color: #1c2a1a;
+  border-color: #466146;
+}
+
+[data-tema='escuro'] .auth-note {
+  color: #c0cbc3;
+}
+
