@@ -1,16 +1,16 @@
-# React + Vite
+# Recicle Floripa — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface em **React 19 + Vite** do Recicle Floripa.
 
-Currently, two official plugins are available:
+A documentação completa (funcionalidades, como rodar, variáveis de ambiente, rotas da API e segurança) está no [README principal](../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Comandos (dentro da pasta `frontend`)
 
-## React Compiler
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | Abre o app em http://localhost:5173 |
+| `npm run build` | Gera a versão de produção em `dist/` |
+| `npm run lint` | Confere o código com o ESLint |
+| `node scripts/gerar-tema-escuro.mjs` | Gera o `src/tema-escuro.css` a partir do `src/index.css` |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+O endereço da API fica em `frontend/.env.local` (`VITE_API_URL`). Veja o modelo em `.env.example`.
