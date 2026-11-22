@@ -15,6 +15,18 @@ const limiteLogin = rateLimit({
   message: mensagem('Muitas tentativas de login. Espere 15 minutos e tente de novo.'),
 });
 
+// Senha conferida com a pessoa já logada (trocar senha, excluir conta):
+// 10 erros a cada 15 minutos por usuário
+const limiteSenha = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => `senha-${req.usuarioId}`,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: mensagem('Muitas tentativas com a senha errada. Espere 15 minutos e tente de novo.'),
+});
+
 // 5 contas novas por hora por IP
 const limiteCadastro = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -53,4 +65,4 @@ const limiteEnvioEmail = rateLimit({
   message: mensagem('Muitos e-mails pedidos daqui. Tente de novo mais tarde.'),
 });
 
-module.exports = { limiteLogin, limiteCadastro, limiteIA, limiteCodigo, limiteEnvioEmail };
+module.exports = { limiteLogin, limiteCadastro, limiteIA, limiteCodigo, limiteEnvioEmail, limiteSenha };

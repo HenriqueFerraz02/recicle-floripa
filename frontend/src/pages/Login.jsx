@@ -12,6 +12,8 @@ const Login = () => {
   const [senha, setSenha] = useState('');
   // ?expirou=1: veio de uma sessão vencida (utils/sessao.js)
   const [erro, setErro] = useState(() => (new URLSearchParams(window.location.search).has('expirou') ? 'Sua sessão expirou. Entre de novo.' : ''));
+  // ?excluida=1: a pessoa acabou de excluir a conta (Configurações)
+  const [aviso] = useState(() => (new URLSearchParams(window.location.search).has('excluida') ? 'Sua conta foi excluída e seus dados foram apagados.' : ''));
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -60,6 +62,7 @@ const Login = () => {
             Recicle, ganhe pontos e ajude a construir uma cidade mais limpa.
           </p>
         
+        {aviso && !erro && <p className='auth-success' role='status'>{aviso}</p>}
         {erro && (
           <p className='auth-error'>
             {erro}

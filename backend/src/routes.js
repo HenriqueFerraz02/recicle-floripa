@@ -12,7 +12,7 @@ const {
   converterDataNascimento,
 } = require('./validacoes');
 const { gerarToken, exigirLogin, exigirDono } = require('./auth');
-const { limiteLogin, limiteCadastro, limiteIA, limiteCodigo, limiteEnvioEmail } = require('./limites');
+const { limiteLogin, limiteCadastro, limiteIA, limiteCodigo, limiteEnvioEmail, limiteSenha } = require('./limites');
 const { criarCodigo, conferirCodigo } = require('./codigos');
 const { enviarCodigo } = require('./email');
 const { BAIRROS } = require('./bairros');
@@ -751,7 +751,7 @@ routes.get('/usuarios/:id/resumo', exigirLogin, exigirDono('id'), async (req, re
 });
 
 // 7. Alterar Senha com Validação da Senha Atual
-routes.put('/usuarios/:id/senha', exigirLogin, exigirDono('id'), async (req, res) => {
+routes.put('/usuarios/:id/senha', exigirLogin, exigirDono('id'), limiteSenha, async (req, res) => {
   const { id } = req.params;
   const { senhaAtual, novaSenha } = req.body;
 
@@ -773,9 +773,10 @@ routes.put('/usuarios/:id/senha', exigirLogin, exigirDono('id'), async (req, res
       senhaAtual,
       buscaUsuario.rows[0].senha
     );
+    // 400 e não 401: o app trata 401 como sessão vencida e desconectaria a pessoa
     if (!senhaCorreta) {
       return res
-        .status(401)
+        .status(400)
         .json({ error: 'A senha atual informada está incorreta.' });
     }
 
@@ -825,6 +826,40 @@ routes.delete('/residuos/:id', exigirLogin, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Erro ao excluir descarte.' });
+  }
+});
+
+// Excluir a própria conta (LGPD). Pede a senha de novo para confirmar.
+// Apaga junto os descartes e os códigos de e-mail, numa transação só.
+routes.delete('/usuarios/:id', exigirLogin, exigirDono('id'), limiteSenha, async (req, res) => {
+  const { id } = req.params;
+  const { senha } = req.body || {};
+  if (!senha) {
+    return res.status(400).json({ error: 'Digite sua senha para confirmar.' });
+  }
+
+  const cliente = await pool.connect();
+  try {
+    const busca = await cliente.query('SELECT senha FROM usuarios WHERE id = $1', [id]);
+    if (busca.rows.length === 0) {
+      return res.status(404).json({ error: 'Conta não encontrada.' });
+    }
+    if (!(await bcrypt.compare(senha, busca.rows[0].senha))) {
+      return res.status(400).json({ error: 'Senha incorreta. A conta não foi excluída.' });
+    }
+
+    await cliente.query('BEGIN');
+    await cliente.query('DELETE FROM codigos_email WHERE usuario_id = $1', [id]);
+    await cliente.query('DELETE FROM residuos WHERE usuario_id = $1', [id]);
+    await cliente.query('DELETE FROM usuarios WHERE id = $1', [id]);
+    await cliente.query('COMMIT');
+    return res.json({ message: 'Conta excluída. Seus dados foram apagados.' });
+  } catch (err) {
+    await cliente.query('ROLLBACK').catch(() => {});
+    console.error(err);
+    return res.status(500).json({ error: 'Erro ao excluir a conta. Tente de novo.' });
+  } finally {
+    cliente.release();
   }
 });
 

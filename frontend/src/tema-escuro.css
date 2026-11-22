@@ -1498,3 +1498,29 @@
   color: #c0cbc3;
 }
 
+[data-tema='escuro'] .settings-delete button {
+  color: #ffffff;
+  background-color: #a23535;
+  border-color: #963131;
+}
+
+[data-tema='escuro'] .delete-warning {
+  color: #d7b5b5;
+  background-color: #2a1010;
+  border-color: #6d3b3b;
+}
+
+[data-tema='escuro'] .delete-form .delete-check input {
+  box-shadow: none;
+}
+
+[data-tema='escuro'] .delete-form .delete-check span {
+  color: #c7d1cb;
+}
+
+[data-tema='escuro'] .delete-form .delete-confirm {
+  color: #ffffff;
+  background-color: #a23535;
+  border-color: #963131;
+}
+

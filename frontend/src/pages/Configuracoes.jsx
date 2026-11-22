@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertCircle, Award, BarChart3, Calendar, CheckCircle, ChevronRight, Lock, LogOut, ShieldCheck, User, X } from 'lucide-react';
+import { AlertCircle, Award, BarChart3, Calendar, CheckCircle, ChevronRight, Lock, LogOut, ShieldCheck, Trash2, User, X } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../utils/api';
@@ -23,6 +23,10 @@ export default function Configuracoes() {
   const [novaSenha, setNovaSenha] = useState('');
   const [salvandoSenha, setSalvandoSenha] = useState(false);
   const [feedbackSenha, setFeedbackSenha] = useState({ msg: '', tipo: '' });
+  const [senhaExclusao, setSenhaExclusao] = useState('');
+  const [entendiExclusao, setEntendiExclusao] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState('');
 
   let userId = localStorage.getItem('usuario_id');
   const loginDataRaw = localStorage.getItem('loginData');
@@ -107,6 +111,21 @@ export default function Configuracoes() {
     navigate('/login');
   };
 
+  const handleExcluirConta = async (event) => {
+    event.preventDefault();
+    if (!entendiExclusao || !senhaExclusao) return;
+    setExcluindo(true);
+    setErroExclusao('');
+    try {
+      await axios.delete(`${API_BASE_URL}/usuarios/${finalUserId}`, { data: { senha: senhaExclusao } });
+      encerrarSessao();
+      navigate('/login?excluida=1', { replace: true });
+    } catch (error) {
+      setErroExclusao(error.response?.data?.error || 'Não foi possível excluir a conta agora. Tente de novo.');
+      setExcluindo(false);
+    }
+  };
+
   const anoAtual = new Date().getFullYear();
   const dadosMensais = MESES.map((mes, index) => {
     const totalItens = historicoColetas.filter((item) => {
@@ -123,6 +142,11 @@ export default function Configuracoes() {
 
   const abrirModal = (modal) => {
     setModalAtivo(modal);
+    if (modal === 'excluir') {
+      setSenhaExclusao('');
+      setEntendiExclusao(false);
+      setErroExclusao('');
+    }
     if (modal === 'seguranca') {
       setFeedbackSenha({ msg: '', tipo: '' });
       setSenhaAtual('');
@@ -154,17 +178,27 @@ export default function Configuracoes() {
           <PreferenciasAparencia />
 
           <div className='settings-logout'><div><strong>Encerrar sessão</strong><small>Desconectar sua conta com segurança.</small></div><button onClick={handleLogout}><LogOut size={14} /> Sair</button></div>
+
+          <div className='settings-logout settings-delete'><div><strong>Excluir minha conta</strong><small>Apaga sua conta e todos os seus descartes, para sempre.</small></div><button onClick={() => abrirModal('excluir')}><Trash2 size={14} /> Excluir</button></div>
         </section>
       </div>
 
       {modalAtivo && <div className='settings-modal-backdrop' onClick={() => setModalAtivo(null)}><section className={`settings-modal ${modalAtivo === 'tabelaMensal' ? 'is-report' : ''}`} onClick={(event) => event.stopPropagation()}>
-        <header><h2>{modalAtivo === 'perfil' && <><Award size={19} /> Perfil Eco-Cidadão</>}{modalAtivo === 'tabelaMensal' && <><Calendar size={19} /> Balanço anual ({anoAtual})</>}{modalAtivo === 'seguranca' && <><Lock size={19} /> Alterar senha</>}</h2><button onClick={() => setModalAtivo(null)} aria-label='Fechar'><X size={18} /></button></header>
+        <header><h2>{modalAtivo === 'perfil' && <><Award size={19} /> Perfil Eco-Cidadão</>}{modalAtivo === 'tabelaMensal' && <><Calendar size={19} /> Balanço anual ({anoAtual})</>}{modalAtivo === 'seguranca' && <><Lock size={19} /> Alterar senha</>}{modalAtivo === 'excluir' && <><Trash2 size={19} /> Excluir minha conta</>}</h2><button onClick={() => setModalAtivo(null)} aria-label='Fechar'><X size={18} /></button></header>
 
         {modalAtivo === 'perfil' && <><div className='eco-level'><span>SUA CLASSIFICAÇÃO</span><strong>{nivelEco}</strong><small>{pontos} pontos acumulados em Floripa</small></div><div className='eco-stats'><div><span>Descartes feitos</span><strong>{totalColetasAno}</strong></div><div><span>CO₂ evitado</span><strong>~{totalCo2Ano} kg</strong></div></div><button className='auth-button auth-button-primary' onClick={() => setModalAtivo(null)}>Fechar detalhes</button></>}
 
         {modalAtivo === 'tabelaMensal' && <><div className='report-summary'><div><span>Total coletado</span><strong>{totalColetasAno}</strong></div><div><span>Pontos do ano</span><strong>+{totalPontosAno}</strong></div><div><span>CO₂ evitado</span><strong>~{totalCo2Ano} kg</strong></div></div><div className='report-table-wrap'><table><thead><tr><th>Mês</th><th>Descartes</th><th>Pontos</th><th>CO₂</th></tr></thead><tbody>{dadosMensais.map((dado) => <tr key={dado.mes}><td>{dado.mes}</td><td>{dado.totalItens}</td><td>{dado.pontosGanhos ? `+${dado.pontosGanhos}` : '-'}</td><td>{dado.totalItens ? `${dado.co2EstimadoKg} kg` : '-'}</td></tr>)}</tbody></table></div><button className='auth-button auth-button-primary' onClick={() => setModalAtivo(null)}>Fechar relatório</button></>}
 
         {modalAtivo === 'seguranca' && <form className='security-form' onSubmit={handleAlterarSenha}>{feedbackSenha.msg && <div className={`settings-feedback ${feedbackSenha.tipo === 'sucesso' ? 'is-success' : 'is-error'}`}>{feedbackSenha.msg}</div>}<label><span>Senha atual</span><input type='password' autoComplete='current-password' value={senhaAtual} onChange={(event) => setSenhaAtual(event.target.value)} placeholder='Digite sua senha atual' required /></label><label><span>Nova senha</span><input type='password' autoComplete='new-password' value={novaSenha} onChange={(event) => setNovaSenha(event.target.value)} placeholder='Ex: Verde$Ilha77' required /><small>Pelo menos 8 caracteres, com maiúscula, minúscula, número e caractere especial.</small></label><div className='security-actions'><button type='button' onClick={() => setModalAtivo(null)}>Cancelar</button><button className='auth-button-primary' type='submit' disabled={salvandoSenha}>{salvandoSenha ? 'Validando...' : 'Confirmar troca'}</button></div></form>}
+
+        {modalAtivo === 'excluir' && <form className='security-form delete-form' onSubmit={handleExcluirConta}>
+          <p className='delete-warning'>Isto apaga <strong>na hora e para sempre</strong> a sua conta, seus pontos, seus descartes e sua foto. Não dá para desfazer.</p>
+          {erroExclusao && <div className='settings-feedback is-error' role='alert'><AlertCircle size={15} />{erroExclusao}</div>}
+          <label><span>Sua senha</span><input type='password' autoComplete='current-password' value={senhaExclusao} onChange={(event) => setSenhaExclusao(event.target.value)} placeholder='Digite sua senha para confirmar' required /></label>
+          <label className='delete-check'><input type='checkbox' checked={entendiExclusao} onChange={(event) => setEntendiExclusao(event.target.checked)} /><span>Entendi que a exclusão não pode ser desfeita.</span></label>
+          <div className='security-actions'><button type='button' onClick={() => setModalAtivo(null)}>Cancelar</button><button className='delete-confirm' type='submit' disabled={excluindo || !entendiExclusao || !senhaExclusao}>{excluindo ? 'Excluindo...' : 'Excluir para sempre'}</button></div>
+        </form>}
       </section></div>}
     </main>
   );

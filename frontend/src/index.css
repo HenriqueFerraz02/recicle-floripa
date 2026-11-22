@@ -3595,3 +3595,63 @@ input {
   font-size: calc(0.84rem * var(--escala-texto, 1));
   text-decoration: underline;
 }
+
+/* ---------- Excluir minha conta (LGPD) ---------- */
+.settings-delete {
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.settings-delete button {
+  color: #ffffff;
+  background: #b03a3a;
+  border-color: #b03a3a;
+}
+
+.delete-warning {
+  margin: 0 0 14px;
+  padding: 11px 12px;
+  color: #8a2f2f;
+  background: #fff3f3;
+  border: 1px solid #f0c4c4;
+  border-radius: 10px;
+  font-size: calc(0.9rem * var(--escala-texto, 1));
+  line-height: 1.45;
+}
+
+.delete-form .delete-check {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 4px 0 6px;
+  cursor: pointer;
+}
+
+.delete-form .delete-check input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  padding: 0;
+  flex: none;
+  box-shadow: none;
+  accent-color: #b03a3a;
+}
+
+.delete-form .delete-check span {
+  color: #3f5848;
+  font-size: calc(0.9rem * var(--escala-texto, 1));
+  font-weight: 600;
+}
+
+.delete-form .delete-confirm {
+  color: #ffffff;
+  background: #b03a3a;
+  border: 1px solid #b03a3a;
+}
+
+.delete-form .delete-confirm:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

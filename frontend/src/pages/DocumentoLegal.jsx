@@ -4,7 +4,7 @@ import logoRecicle from '../assets/png.png';
 import BotaoTema from '../components/BotaoTema';
 
 const ATUALIZADO_EM = '20/11/2026';
-const REPOSITORIO = 'https://github.com/HenriqueFerraz02/recicle-floripa';
+const EMAIL_CONTATO = 'reciclefloripa@gmail.com';
 
 const DOCUMENTOS = {
   termos: {
@@ -103,8 +103,8 @@ const DOCUMENTOS = {
       {
         titulo: '5. Seus direitos (LGPD)',
         paragrafos: [
-          'Você pode pedir a qualquer momento para ver, corrigir ou excluir seus dados e sua conta. Ao excluir a conta, os descartes ligados a ela também são apagados.',
-          `Para fazer um pedido, entre em contato com a equipe pelo repositório do projeto: ${REPOSITORIO}`,
+          'Você pode ver e corrigir seus dados no Perfil e em Configurações, e excluir sua conta a qualquer momento em Configurações › Excluir minha conta. Ao excluir a conta, os descartes ligados a ela também são apagados, na hora e para sempre.',
+          `Para qualquer outro pedido ou dúvida sobre seus dados, escreva para a equipe: ${EMAIL_CONTATO}`,
         ],
       },
       {
